@@ -1,18 +1,23 @@
 package org.dionthorn.isekairpg.characters;
 
-import org.dionthorn.isekairpg.utility.Dice;
-import org.dionthorn.isekairpg.worlds.Place;
+import org.dionthorn.isekairpg.items.Armors;
+import org.dionthorn.isekairpg.items.Weapons;
+import org.dionthorn.isekairpg.utilities.Dice;
 
+/**
+ * The Player class represents the AbstractCharacter that the user is controlling
+ */
 public class Player extends AbstractCharacter {
 
-    public Player(String firstName, String lastName, int level, Dice hitDie, int soulPoints, Place initialLocation) {
-        super(firstName, lastName, level, hitDie, soulPoints, initialLocation);
+    public Player(Dice hitDie) {
+        super(hitDie);
         this.age = 20; // players start aged 20
-        this.maxAge = new Dice(40).roll() + 30; // players get 30 years guaranteed and die between ages 50-90
+        this.maxAge = new Dice(40).roll() + 30; // players get 31 years guaranteed and die between ages 51-90
+        this.equippedWeapon = Weapons.get(Weapons.Type.BO);
+        this.equippedArmor = Armors.get(Armors.Type.CLOTH);
     }
 
     @Override
-    public void tick() {
-        super.tick();
-    }
+    public void tick() { super.tick(); }
+
 }

@@ -1,7 +1,6 @@
 package org.dionthorn.isekairpg.controllers;
 
 import javafx.fxml.FXML;
-import javafx.scene.control.Button;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.GridPane;
@@ -11,38 +10,123 @@ import org.dionthorn.isekairpg.GameState;
 import org.dionthorn.isekairpg.characters.AbstractCharacter;
 import org.dionthorn.isekairpg.characters.NPC;
 import org.dionthorn.isekairpg.characters.Player;
+import org.dionthorn.isekairpg.utilities.Dice;
 import org.dionthorn.isekairpg.worlds.Area;
 import org.dionthorn.isekairpg.worlds.Place;
 import org.dionthorn.isekairpg.worlds.Region;
 import org.dionthorn.isekairpg.worlds.World;
-
 import java.util.ArrayList;
 import java.util.Locale;
 
+/**
+ * The GameScreenController handles all UI reaction logic
+ * ex: a user presses the wait button calls the onWait() method
+ */
 public class GameScreenController extends AbstractScreenController {
 
-    @FXML public Button waitBtn;
-    @FXML public Text timeInfo;
-    @FXML public Text playerSheet;
+    // FXML defined nodes
+    @FXML private Text timeInfo;
+    @FXML private Text playerSheet;
 
+    // Used to remember actions the player has taken as String representations
     ArrayList<String> actionStrings = new ArrayList<>();
 
+    /**
+     * The FXML initialize method is called after loading all FXML nodes
+     */
     @FXML
     public void initialize() {
-        console.setOnKeyPressed(this::processConsoleInput);
+        // pressing the enter key will call the processConsoleInput method
+        bottomConsole.setOnKeyPressed(this::processConsoleInput);
         update();
     }
 
+    /**
+     * When a user presses the waitBtn this method is called
+     * Will tick() the GameState and call update()
+     */
+    @FXML
     public void onWait() {
         Engine.getGameState().tick();
         update();
     }
 
+    @FXML
+    public void onMoveNorth() { movePlayer(0, -1); }
+
+    @FXML
+    public void onMoveSouth() { movePlayer(0, 1); }
+
+    @FXML
+    public void onMoveEast() { movePlayer(1, 0); }
+
+    @FXML
+    public void onMoveWest() { movePlayer(-1, 0); }
+
+    @FXML
+    public void onMapRegions() {
+        mapRegions();
+        actionStrings.add("You viewed the world map of all regions");
+        updateConsole();
+    }
+
+    @FXML
+    public void onMapAreas() {
+        mapAreas();
+        actionStrings.add("You viewed the areas map of your current region");
+        updateConsole();
+    }
+
+    @FXML
+    public void onMapPlaces() {
+        mapPlaces();
+        actionStrings.add("You viewed the places map of your current area");
+        updateConsole();
+    }
+
+    @FXML
+    public void onLook() {
+        GameState gameState = Engine.getGameState();
+        Player player = gameState.getPlayer();
+
+        Place currentPlace = player.getCurrentPlace();
+        ArrayList<NPC> npcPresent = new ArrayList<>();
+        for(NPC npc: gameState.getNPCs()) {
+            if(npc.getCurrentPlace() == currentPlace) {
+                npcPresent.add(npc);
+            }
+        }
+        StringBuilder result = new StringBuilder();
+        if(npcPresent.size() != 0) {
+            result.append("You see: \n");
+            int seenCount = 0;
+            for(NPC npc: npcPresent) {
+                result.append("  (").append(seenCount++).append(") ");
+                result.append(npc.getFirstName()).append(" ")
+                        .append(npc.getLastName()).append(" the ")
+                        .append(npc.getProfession().name().toLowerCase()).append(" from ")
+                        .append(npc.getHome().getName()).append(" of ")
+                        .append(npc.getHome().getParent().getName());
+                if(!(npcPresent.indexOf(npc) == npcPresent.size() - 1)) {
+                    result.append("\n");
+                }
+            }
+        } else {
+            result.append("You see no people around.");
+        }
+        actionStrings.add(result.toString());
+        updateConsole();
+    }
+
+    /**
+     * Will update the console
+     */
     public void updateConsole() {
         GameState gameState = Engine.getGameState();
         Player player = gameState.getPlayer();
 
-        String locationInfo = String.format("You are at %s a %s in %s a %s of %s the %s region",
+        // tells the player where they are currently located
+        String locationInfo = String.format("You are at %s a %s in %s a %s of %s a %s region",
                 player.getCurrentPlace().getName(),
                 player.getCurrentPlace().getType().name().toLowerCase(Locale.ROOT),
                 player.getCurrentArea().getName(),
@@ -50,45 +134,55 @@ public class GameScreenController extends AbstractScreenController {
                 player.getCurrentRegion().getName(),
                 player.getCurrentRegion().getBiome().name().toLowerCase(Locale.ROOT)
         );
-        console.setText(locationInfo);
+
+
+        bottomConsole.setText(locationInfo); // setText clears the console then we add the locationInfo String
         for(String actionString: actionStrings) {
-            console.appendText("\n" + actionString);
+            bottomConsole.appendText("\n" + actionString); // add all actionString
         }
-        actionStrings.clear();
-        console.appendText("\n>");
+        actionStrings.clear(); // clear actionStrings
+        bottomConsole.appendText("\n>"); // add the special > character for user input parsing
     }
 
+    /**
+     * will update the entire game screen
+     */
     public void update() {
         GameState gameState = Engine.getGameState();
         Player player = gameState.getPlayer();
 
-        playerSheet.setText(player.getCharacterSheet());
-        timeInfo.setText(gameState.getDateString());
+        playerSheet.setText(player.getCharacterSheet()); // update player character sheet info
+        timeInfo.setText(gameState.getDateString()); // update date string
 
-        mapPlaces();
-        updateConsole();
+        mapPlaces(); // show the current places map
+        updateConsole(); // update the console
     }
 
+    /**
+     * shows the console help prompt
+     */
     public void consoleHelpPrompt() {
-        console.setText("help -- shows this prompt\n");
-        console.appendText("\nmap [world, regions, areas, places, region x y, area x y]");
-        console.appendText("\nmap [world, regions]                   -- display a map of all regions in the world");
-        console.appendText("\nmap [areas]                            -- display a map of the areas   in the players current region");
-        console.appendText("\nmap [places]                           -- display a map of the places  in the players current area");
-        console.appendText("\nmap [region regionX regionY]           -- display map region=(x, y)");
-        console.appendText("\nmap [area regionX regionY areaX areaY] -- display map area  =(x, y)");
-        console.appendText("\n>");
+        bottomConsole.setText("help -- shows this prompt");
+        bottomConsole.appendText("\nmap [world, regions, areas, places]");
+        bottomConsole.appendText("\nmap [world, regions]                   -- display a map of all regions in the world");
+        bottomConsole.appendText("\nmap [areas]                            -- display a map of the areas   in the players current region");
+        bottomConsole.appendText("\nmap [places]                           -- display a map of the places  in the players current area");
+        bottomConsole.appendText("\nmove [north, west, east, south] -- move the player in the given direction");
+        bottomConsole.appendText("\nmove [n, w, e, s]               -- same as above");
+        bottomConsole.appendText("\nlook -- list the names of all characters present");
+        bottomConsole.appendText("\n>");
     }
 
+    /**
+     * When the user presses enter on the console will attempt to process any user input
+     * @param event KeyEvent representing the key pressed
+     */
     private void processConsoleInput(KeyEvent event) {
         if (event.getCode() == KeyCode.ENTER) {
-            if (console.getText().contains(">")) {
-                GameState gameState = Engine.getGameState();
-                World world = gameState.getWorld();
-                Player player = gameState.getPlayer();
+            if (bottomConsole.getText().contains(">")) {
                 String userInputLazy = "";
-                if(console.getText().split(">").length >= 2) {
-                    userInputLazy = console.getText().split(">")[1].strip().toLowerCase(Locale.ROOT);
+                if(bottomConsole.getText().split(">").length >= 2) {
+                    userInputLazy = bottomConsole.getText().split(">")[1].strip().toLowerCase(Locale.ROOT);
                 }
                 if(userInputLazy.equals("help")) {
                     consoleHelpPrompt();
@@ -96,131 +190,26 @@ public class GameScreenController extends AbstractScreenController {
                     Runtime runtime = Runtime.getRuntime();
                     long memoryMax = runtime.maxMemory();
                     long memoryUsed = runtime.totalMemory() - runtime.freeMemory();
-                    console.setText("memMax: ~" + ((memoryMax / 1024) / 1024) + "MB");
-                    console.appendText("\nmemUsed: " + ((memoryUsed / 1024) / 1024) + "MB");
+                    bottomConsole.setText("memMax: ~" + ((memoryMax / 1024) / 1024) + "MB");
+                    bottomConsole.appendText("\nmemUsed: " + ((memoryUsed / 1024) / 1024) + "MB");
                     double memoryUsedPercent = (memoryUsed * 100.0) / memoryMax;
-                    console.appendText(String.format("\nmemoryUsedPercent: %.2f%%", memoryUsedPercent));
-                    console.appendText(
+                    bottomConsole.appendText(String.format("\nmemoryUsedPercent: %.2f%%", memoryUsedPercent));
+                    bottomConsole.appendText(
                             String.format("\nabstractCharacters: %s", AbstractCharacter.getCharacterCount())
                     );
-                    console.appendText("\n>"); // insert cursor so user can do console commands
+                    bottomConsole.appendText("\n>"); // insert cursor so user can do console commands
                 } else if(userInputLazy.startsWith("map")) {
                     // unknown map command direct to help
-                    if ("map regions".equals(userInputLazy) || "map world".equals(userInputLazy)) {
-                        mapRegions();
-                        actionStrings.add("You viewed the world map of all regions");
-                        updateConsole();
-                    } else if ("map areas".equals(userInputLazy)) {
-                        mapAreas();
-                        actionStrings.add("You viewed the areas map of your current region");
-                        updateConsole();
-                    } else if ("map places".equals(userInputLazy)) {
-                        mapPlaces();
-                        actionStrings.add("You viewed the places map of your current area");
-                        updateConsole();
-                    } else if(userInputLazy.length() > 10 &&
-                            userInputLazy.startsWith("map region") &&
-                            userInputLazy.charAt(10) == ' ') {
-                        // map region xx yy
-                        String[] attempt = userInputLazy.split(" ");
-                        if(attempt.length > 3) {
-                            int regionX = Integer.parseInt(attempt[2]);
-                            int regionY = Integer.parseInt(attempt[3]);
-                            Region targetRegion = world.getRegion(regionX, regionY);
-                            actionStrings.add("You viewed the region map of " + targetRegion.getName());
-                            Text areaMap = new Text(world.getRegionMap(
-                                    regionX,
-                                    regionY
-                            ));
-                            GridPane.setConstraints(areaMap, 0, 0, 1, 2);
-                            Text areaKey = new Text(world.getKey());
-                            GridPane.setConstraints(areaKey, 1, 0);
-                            centerGridPane.getChildren().addAll(areaKey, areaMap);
-                            updateConsole();
-                        } else {
-                            consoleHelpPrompt();
-                        }
-                    } else if(userInputLazy.length() > 8 &&
-                            userInputLazy.startsWith("map area") &&
-                            userInputLazy.charAt(8) == ' ') {
-                        // map area xx yy
-                        String[] attempt = userInputLazy.split(" ");
-                        if(attempt.length > 5) {
-                            int regionX = Integer.parseInt(attempt[2]);
-                            int regionY = Integer.parseInt(attempt[3]);
-                            int areaX = Integer.parseInt(attempt[4]);
-                            int areaY = Integer.parseInt(attempt[5]);
-                            Region targetRegion = world.getRegion(regionX, regionY);
-                            Area targetArea = targetRegion.getArea(areaX, areaY);
-                            actionStrings.add("You viewed the area map of " + targetArea.getName());
-                            Text areaMap = new Text(targetRegion.getAreaMap(
-                                    areaX,
-                                    areaY
-                            ));
-                            GridPane.setConstraints(areaMap, 0, 0, 1, 2);
-                            Text areaKey = new Text(targetRegion.getKey());
-                            GridPane.setConstraints(areaKey, 1, 0);
-                            centerGridPane.getChildren().addAll(areaKey, areaMap);
-                            updateConsole();
-                        } else {
-                            consoleHelpPrompt();
-                        }
-                    } else if(userInputLazy.length() > 9 &&
-                            userInputLazy.startsWith("map place") &&
-                            userInputLazy.charAt(9) == ' ') {
-                        String[] attempt = userInputLazy.split(" ");
-                        int regionX = -1;
-                        int regionY = -1;
-                        int areaX = -1;
-                        int areaY = -1;
-                        int placeX = -1;
-                        int placeY = -1;
-                        try {
-                            regionX = Integer.parseInt(attempt[2]);
-                            regionY = Integer.parseInt(attempt[3]);
-                            areaX = Integer.parseInt(attempt[4]);
-                            areaY = Integer.parseInt(attempt[5]);
-                            placeX = Integer.parseInt(attempt[6]);
-                            placeY = Integer.parseInt(attempt[7]);
-                        } catch(Exception e) {
-                            actionStrings.add("You tried to map a place that doesn't exist.");
-                        }
-                        if(regionX != -1 && regionY != -1 &&
-                                areaX != -1 && areaY != -1 &&
-                                placeX != -1 && placeY != -1) {
-                            Region targetRegion = world.getRegion(regionX, regionY);
-                            Area targetArea = targetRegion.getArea(areaX, areaY);
-                            Place targetPlace = targetArea.getPlace(placeX, placeY);
-                            actionStrings.add("You viewed the place map of " + targetPlace.getName());
-                            Text placeMap = new Text(targetArea.getPlaceMap(
-                                    placeX,
-                                    placeY
-                            ));
-                            GridPane.setConstraints(placeMap, 0, 0, 1, 2);
-                            Text placeKey = new Text(targetArea.getKey());
-                            GridPane.setConstraints(placeKey, 1, 0);
-                            centerGridPane.getChildren().addAll(placeKey, placeMap);
-                        }
-                        updateConsole();
-                    } else {
-                        consoleHelpPrompt();
+                    switch(userInputLazy) {
+                        case "map regions", "map world" -> onMapRegions();
+                        case "map areas" -> onMapAreas();
+                        case "map places" -> onMapPlaces();
+                        default -> consoleHelpPrompt();
                     }
                 } else if(userInputLazy.startsWith("move")) {
                     int directionX = 0;
                     int directionY = 0;
-                    if(userInputLazy.startsWith("move northwest") || userInputLazy.startsWith("move nw")) {
-                        directionY = -1;
-                        directionX = -1;
-                    } else if(userInputLazy.startsWith("move northeast") || userInputLazy.startsWith("move ne")) {
-                        directionY = -1;
-                        directionX = 1;
-                    } else if(userInputLazy.startsWith("move southwest") || userInputLazy.startsWith("move sw")) {
-                        directionY = 1;
-                        directionX = -1;
-                    } else if(userInputLazy.startsWith("move southeast") || userInputLazy.startsWith("move se")) {
-                        directionY = 1;
-                        directionX = 1;
-                    } else if(userInputLazy.startsWith("move north") || userInputLazy.startsWith("move n")) {
+                    if(userInputLazy.startsWith("move north") || userInputLazy.startsWith("move n")) {
                         directionY = -1;
                     } else if(userInputLazy.startsWith("move south") || userInputLazy.startsWith("move s")) {
                         directionY = 1;
@@ -229,137 +218,9 @@ public class GameScreenController extends AbstractScreenController {
                     } else if(userInputLazy.startsWith("move west") || userInputLazy.startsWith("move w")) {
                         directionX = -1;
                     }
-                    Place currentPlace = player.getCurrentPlace();
-                    int currentPlaceX = currentPlace.getX();
-                    int currentPlaceY = currentPlace.getY();
-                    Area currentArea = player.getCurrentArea();
-                    int currentAreaX = currentArea.getX();
-                    int currentAreaY = currentArea.getY();
-                    Region currentRegion = player.getCurrentRegion();
-                    int currentRegionX = player.getCurrentRegion().getX();
-                    int currentRegionY = player.getCurrentRegion().getY();
-                    boolean canLocalMoveX = false;
-                    boolean canLocalMoveY = false;
-                    if(currentPlaceX + directionX < currentArea.getPlaceSize() && currentPlaceX + directionX >= 0) {
-                        canLocalMoveX = true;
-                    }
-                    if(currentPlaceY + directionY < currentArea.getPlaceSize() && currentPlaceY + directionY >= 0) {
-                        canLocalMoveY = true;
-                    }
-                    if(canLocalMoveX && canLocalMoveY) {
-                        Place toMove = currentArea.getPlace(currentPlaceX + directionX, currentPlaceY + directionY);
-                        player.setCurrentPlace(toMove);
-                        actionStrings.add("Moving places took 1 hour");
-                        Engine.getGameState().tick();
-                        mapPlaces();
-                    } else {
-                        boolean canAreaMoveX = false;
-                        boolean canAreaMoveY = false;
-                        if(currentAreaX + directionX < currentRegion.getAreaSize() && currentAreaX + directionX >= 0) {
-                            canAreaMoveX = true;
-                        }
-                        if(currentAreaY + directionY < currentRegion.getAreaSize() && currentAreaY + directionY >= 0) {
-                            canAreaMoveY = true;
-                        }
-                        if(canAreaMoveX && canAreaMoveY) {
-                            // if moving north will go to the north area, east the east area etc
-                            Area targetArea = currentRegion.getArea(currentAreaX + directionX, currentAreaY + directionY);
-                            // We need to check direction so relative location stays consistent going all directions
-                            Place toMove = targetArea.getPlace(currentPlaceX, currentPlaceY);
-                            if(directionY == -1) {
-                                // moving north
-                                toMove = targetArea.getPlace(currentPlaceX, targetArea.getPlaceSize() - 1);
-                            } else if(directionY == 1) {
-                                // moving south
-                                toMove = targetArea.getPlace(currentPlaceX, 0);
-                            } else if(directionX == 1) {
-                                // moving east
-                                toMove = targetArea.getPlace(0 , currentPlaceY);
-                            } else if(directionX == -1) {
-                                // moving west
-                                toMove = targetArea.getPlace(targetArea.getPlaceSize() - 1 , currentPlaceY);
-                            }
-                            player.setCurrentPlace(toMove);
-                            actionStrings.add("Moving areas took 3 hours");
-                            gameState.tick(3);
-                            mapAreas();
-                        } else {
-                            boolean canRegionMoveX = false;
-                            boolean canRegionMoveY = false;
-                            if(currentRegionX + directionX < world.getRegionSize() && currentRegionX + directionX >= 0) {
-                                canRegionMoveX = true;
-                            }
-                            if(currentRegionY + directionY < world.getRegionSize() && currentRegionY + directionY >= 0) {
-                                canRegionMoveY = true;
-                            }
-                            if(canRegionMoveX && canRegionMoveY) {
-                                // if moving north from topmost area in a region you go into the region to the north
-                                // if it exists you could be at edge of world
-                                Region targetRegion = world.getRegion(currentRegionX + directionX, currentRegionY + directionY);
-                                // if moving to the north into a new region, you should be at the south most area in that region
-                                Area targetArea = targetRegion.getArea(currentAreaX, currentAreaY);
-                                if(directionY == -1) {
-                                    // moving north
-                                    targetArea = targetRegion.getArea(currentAreaX, targetRegion.getAreaSize() - 1);
-                                } else if(directionY == 1) {
-                                    // moving south
-                                    targetArea = targetRegion.getArea(currentAreaX, 0);
-                                } else if(directionX == 1) {
-                                    // moving east
-                                    targetArea = targetRegion.getArea(0, currentAreaY);
-                                } else if(directionX == -1) {
-                                    // moving west
-                                    targetArea = targetRegion.getArea(targetRegion.getAreaSize() - 1, currentAreaY);
-                                }
-                                // if moving to the north into a new region, into the south most area, you should be at the south most place in that area
-                                Place toMove = targetArea.getPlace(currentPlaceX, currentPlaceY);
-                                if(directionY == -1) {
-                                    // moving north
-                                    toMove = targetArea.getPlace(currentPlaceX, targetArea.getPlaceSize() - 1);
-                                } else if(directionY == 1) {
-                                    // moving south
-                                    toMove = targetArea.getPlace(currentPlaceX, 0);
-                                } else if(directionX == 1) {
-                                    // moving east
-                                    toMove = targetArea.getPlace(0 , currentPlaceY);
-                                } else if(directionX == -1) {
-                                    // moving west
-                                    toMove = targetArea.getPlace(targetArea.getPlaceSize() - 1 , currentPlaceY);
-                                }
-                                player.setCurrentPlace(toMove);
-                                actionStrings.add("Moving regions took 6 hours");
-                                gameState.tick(6);
-                            } else {
-                                // if you cannot move regions you must be at the edge of the World
-                                actionStrings.add("No known region exists in that direction the path is impossible");
-                            }
-                            mapRegions();
-                        }
-                    }
-                    updateConsole();
+                    movePlayer(directionX, directionY);
                 } else if(userInputLazy.startsWith("look")) {
-                    Place currentPlace = player.getCurrentPlace();
-                    ArrayList<NPC> npcPresent = new ArrayList<>();
-                    for(NPC npc: gameState.getNPCs()) {
-                        if(npc.getCurrentPlace() == currentPlace) {
-                            npcPresent.add(npc);
-                        }
-                    }
-                    StringBuilder result = new StringBuilder();
-                    if(npcPresent.size() != 0) {
-                        result.append("You see ");
-                        for(NPC npc: npcPresent) {
-                            if(npcPresent.indexOf(npc) == npcPresent.size() - 1) {
-                                result.append(npc.getFirstName()).append(" ").append(npc.getLastName());
-                            } else {
-                                result.append(npc.getFirstName()).append(" ").append(npc.getLastName()).append(", ");
-                            }
-                        }
-                    } else {
-                        result.append("You see no people around\n");
-                    }
-                    actionStrings.add(result.toString());
-                    updateConsole();
+                    onLook();
                 } else {
                     // unknown command direct to help
                     consoleHelpPrompt();
@@ -370,6 +231,9 @@ public class GameScreenController extends AbstractScreenController {
         }
     }
 
+    /**
+     * Will display a map of the Places around the players current location
+     */
     private void mapPlaces() {
         centerGridPane.getChildren().clear();
         GameState gameState = Engine.getGameState();
@@ -384,6 +248,9 @@ public class GameScreenController extends AbstractScreenController {
         centerGridPane.getChildren().addAll(placeKey, placeMap);
     }
 
+    /**
+     * Will display a map of the Areas around the players current location
+     */
     private void mapAreas() {
         centerGridPane.getChildren().clear();
         GameState gameState = Engine.getGameState();
@@ -398,6 +265,9 @@ public class GameScreenController extends AbstractScreenController {
         centerGridPane.getChildren().addAll(areaKey, areaMap);
     }
 
+    /**
+     * Will display a map of all Regions also known as the World map
+     */
     private void mapRegions() {
         centerGridPane.getChildren().clear();
         GameState gameState = Engine.getGameState();
@@ -412,4 +282,122 @@ public class GameScreenController extends AbstractScreenController {
         GridPane.setConstraints(regionKey, 1, 0);
         centerGridPane.getChildren().addAll(regionKey, regionMap);
     }
+
+    /**
+     * Will move the Player in the given (x, y) direction,
+     * only cardinal directions supported so (-1, 0) or (1, 0) etc
+     * @param directionX int representing the x direction to move
+     * @param directionY int representing the y direction to move
+     */
+    private void movePlayer(int directionX, int directionY) {
+        GameState gameState = Engine.getGameState();
+        World world = gameState.getWorld();
+        Player player = gameState.getPlayer();
+
+        Place currentPlace = player.getCurrentPlace();
+        Area currentArea = player.getCurrentArea();
+        Region currentRegion = player.getCurrentRegion();
+
+        Place attemptPlaceMove = currentArea.getPlace(
+                currentPlace.getX() + directionX,
+                currentPlace.getY() + directionY
+        );
+        if(attemptPlaceMove != null) {
+            // can move place
+            player.setCurrentPlace(attemptPlaceMove);
+            gameState.tick();
+            actionStrings.add("Moving places took 1 hour");
+        } else {
+            // cannot move place attempt to move area
+            Area attemptAreaMove = currentRegion.getArea(
+                    currentArea.getX() + directionX,
+                    currentArea.getY() + directionY
+            );
+            if(attemptAreaMove != null) {
+                // can move area
+                int placeSize = attemptAreaMove.getPlaceSize();
+                Dice placeDie = new Dice(placeSize);
+                Place toMove = null;
+                if(directionX == 1) {
+                    // moving east choose random place on western side
+                    toMove = attemptAreaMove.getPlace(0, placeDie.roll() - 1);
+                } else if(directionX == -1) {
+                    // moving west choose random place on eastern side
+                    toMove = attemptAreaMove.getPlace(placeSize - 1, placeDie.roll() - 1);
+                } else if(directionY == 1) {
+                    // moving south choose random place on northern side
+                    toMove = attemptAreaMove.getPlace(placeDie.roll() - 1, 0);
+                } else if(directionY == -1) {
+                    // moving north choose random place on southern side
+                    toMove = attemptAreaMove.getPlace(placeDie.roll() - 1, placeSize - 1);
+                }
+                player.setCurrentPlace(toMove);
+                gameState.tick();
+                actionStrings.add("Moving areas took 1 hour");
+            } else {
+                // cannot move area
+                Region attemptRegionMove = world.getRegion(
+                        currentRegion.getX() + directionX,
+                        currentRegion.getY() + directionY
+                );
+                if(attemptRegionMove != null) {
+                    // can move Region
+                    Area areaToMove = null;
+                    // get the area to move to within the target region
+                    if(directionX == 1) {
+                        // moving east choose Area on western side where y is same value as currentArea
+                        areaToMove = attemptRegionMove.getArea(
+                                0,
+                                currentArea.getY()
+                        );
+                    } else if(directionX == -1) {
+                        // moving west choose Area on eastern side where y is same value as currentArea
+                        areaToMove = attemptRegionMove.getArea(
+                                attemptRegionMove.getAreaSize() - 1,
+                                currentArea.getY()
+                        );
+                    } else if(directionY == 1) {
+                        // moving south choose Area on northern side where x is same value as currentArea
+                        areaToMove = attemptRegionMove.getArea(
+                                currentArea.getX(),
+                                0
+                        );
+                    } else if(directionY == -1) {
+                        // moving north choose Area on southern side where x is same value as currentArea
+                        areaToMove = attemptRegionMove.getArea(
+                                currentArea.getX(),
+                                attemptRegionMove.getAreaSize() - 1
+                        );
+                    }
+                    // get the place to move to from the target regions correct area
+                    assert areaToMove != null;
+                    int placeSize = areaToMove.getPlaceSize();
+                    Dice placeDie = new Dice(placeSize);
+                    Place toMove;
+                    if(directionX == 1) {
+                        // moving east choose random place on western side
+                        toMove = areaToMove.getPlace(0, placeDie.roll() - 1);
+                    } else if(directionX == -1) {
+                        // moving west choose random place on eastern side
+                        toMove = areaToMove.getPlace(placeSize - 1, placeDie.roll() - 1);
+                    } else if(directionY == 1) {
+                        // moving south choose random place on northern side
+                        toMove = areaToMove.getPlace(placeDie.roll() - 1, 0);
+                    } else {
+                        // must be moving north choose random place on southern side
+                        toMove = areaToMove.getPlace(placeDie.roll() - 1, placeSize - 1);
+                    }
+                    player.setCurrentPlace(toMove);
+                    gameState.tick();
+                    actionStrings.add("Moving regions took 1 hour");
+                } else {
+                    // cannot move Region
+                    actionStrings.add("No Region exists in that direction, you are at the edge of the World");
+                }
+            }
+        }
+
+        update();
+    }
+
 }

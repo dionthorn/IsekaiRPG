@@ -1,7 +1,12 @@
-package org.dionthorn.isekairpg.utility;
+package org.dionthorn.isekairpg.utilities;
 
+/**
+ * The Names class is a static utility class that provides random formatted naming
+ * Using romaji combinations at random
+ */
 public final class Names {
 
+    // A list of all common romaji
     private static final String[] romaji = new String[] {
             "a", "i", "u", "e", "o",
             "ka", "ki", "ku", "ke", "ko",
@@ -32,9 +37,14 @@ public final class Names {
     };
 
     private Names() {
-        // private static utility class for name generation using romaji
+        // static utility class for name generation using romaji
+        // usage of this class is intended to be Names.method()
     }
 
+    /**
+     * Will provide a Place name using romaji
+     * @return String representing a Place name generated randomly with romaji
+     */
     public static String getPlaceName() {
         StringBuilder result = new StringBuilder();
         Dice romajiDie = new Dice(romaji.length);
@@ -50,27 +60,16 @@ public final class Names {
         return result.toString();
     }
 
-    public static String getFirstName() {
+    /**
+     * Will provide a Name using romaji
+     * @return String representing a Name generated randomly with romaji
+     */
+    public static String getName() {
         StringBuilder result = new StringBuilder();
         Dice romajiDie = new Dice(romaji.length);
-        int sectionCount = Dice.d2.roll() + 1; // 2-3 sections of a first name
+        int sectionCount = new Dice(3).roll() + 1; // 2-4 sections of a name
         for(int steps=0; steps<sectionCount; steps++) {
             result.append(romaji[romajiDie.roll() - 1]);
-        }
-        String capitalize = result.substring(0, 1).toUpperCase();
-        result.setCharAt(0, capitalize.charAt(0));
-        return result.toString();
-    }
-
-    public static String getLastName() {
-        StringBuilder result = new StringBuilder();
-        Dice romajiDie = new Dice(romaji.length);
-        int sectionCount = new Dice(3).roll() + 1; // 2-4 sections of a last name
-        for(int steps=0; steps<sectionCount; steps++) {
-            result.append(romaji[romajiDie.roll() - 1]);
-            if(sectionCount == 4 && steps == 2) {
-                result.append("-"); // add a hyphen to last names with 4 sections xxx-x
-            }
         }
         String capitalize = result.substring(0, 1).toUpperCase();
         result.setCharAt(0, capitalize.charAt(0));

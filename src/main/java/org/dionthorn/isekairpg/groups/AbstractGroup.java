@@ -6,7 +6,7 @@ public abstract class AbstractGroup {
 
     /**
      * All groups have a name
-     * @param name String representing the name of this group ex: "Kingdom of Riyuku-no"
+     * @param name String representing the name of this group ex: "Kingdom of Riyuku-no" or "Bandits of Riuji"
      */
     public AbstractGroup(String name) { this.name = name; }
 

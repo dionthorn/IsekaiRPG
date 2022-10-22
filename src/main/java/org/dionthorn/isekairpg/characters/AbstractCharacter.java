@@ -1,15 +1,25 @@
 package org.dionthorn.isekairpg.characters;
 
-import org.dionthorn.isekairpg.utility.Dice;
+import org.dionthorn.isekairpg.characters.Attributes.Attribute;
+import org.dionthorn.isekairpg.items.AbstractItem;
+import org.dionthorn.isekairpg.items.Armor;
+import org.dionthorn.isekairpg.items.Weapon;
+import org.dionthorn.isekairpg.utilities.Dice;
 import org.dionthorn.isekairpg.Engine;
 import org.dionthorn.isekairpg.GameState;
+import org.dionthorn.isekairpg.utilities.Names;
 import org.dionthorn.isekairpg.worlds.Area;
 import org.dionthorn.isekairpg.worlds.Place;
 import org.dionthorn.isekairpg.worlds.Region;
 
+import java.util.ArrayList;
+
+/**
+ * AbstractCharacter class which Player and NPC inherit from
+ */
 public abstract class AbstractCharacter {
 
-    private static final Dice attributeDice = new Dice(3, 6);
+    private static final int XP_SCALE = 1000; // (level + 1) * XP_SCALE = needed XP to level up
     private static int characterCount = 0; // how many characters have been created
 
     protected final String firstName;
@@ -19,92 +29,118 @@ public abstract class AbstractCharacter {
     protected int age;
     protected int birthMonth;
     protected int birthDay;
-
     protected Dice hitDie;
     protected int maxHitPoints;
     protected int hitPoints;
-    protected int soulPoints;
-
-    protected int level;
+    protected int soulPoints = 1;
+    protected int level = 1;
     protected int xp = 0;
-    protected final int xpScale = 1000; // level * xpScale = needed XP to level up
-    protected int[] attributes;
-    public enum Attribute { STRENGTH, DEXTERITY, CONSTITUTION, WISDOM, INTELLIGENCE, CHARISMA }
-
-    protected int maxCarryWeight = 100;
-
-    protected final Place home;
-    protected Place currentPlace;
+    protected Attributes attributes; // character attributes
+    protected Place home; // home is the initial location of the character
+    protected Place currentPlace; // where the character is currently at
+    protected Profession profession;
+    protected ArrayList<AbstractItem> inventory = new ArrayList<>();
+    protected Weapon equippedWeapon = null;
+    protected Armor equippedArmor = null;
 
     /**
-     * used to determine what NPCs do and skills for PC
+     * used to determine what NPCs do the place types that determine Profession for NPCs are:
+     * LODGING -> INNKEEPER, BUILDER
+     * TRADER -> TRADER
+     * BLACKSMITH -> BLACKSMITH
+     * AGRICULTURE -> FARMER
+     * FISHERY -> FISHER
+     * RESERVE -> HUNTER
+     * WOODLAND -> LUMBERJACK
+     * MINE -> MINER
+     * CAVE -> BANDIT/MAGE
+     * INDOORS -> SAMURAI if CASTLE, MAGE/BANDIT if DUNGEON (KING are specially placed during world generation)
+     * OUTDOORS -> No NPCs spawn outdoors, only random encounters with BANDIT if WILD
      */
     public enum Profession {
-        HUNTER,
-        FARMER,
-        FISHER,
-        LUMBERJACK,
-        MINER,
-        BUILDER,
-        CRAFTER
+        INNKEEPER, BUILDER, TRADER, BLACKSMITH, FARMER, FISHER, HUNTER, LUMBERJACK, MINER,
+        BANDIT, MAGE, SAMURAI, DAIMYO
     }
 
     /**
      * A Character is a living being in the World.
-     *
+     * <p>
      * A living Character has 1 or more hit points. A dead one has 0.
      * Each Character has a maxAge randomly assigned at birth 50-99, they will die when reaching that age.
-     *
-     * A Character has at least 1 soul points from birth.
+     * <p>
+     * A Character has 1 soul points from birth.
      * Characters may absorb the soul points of those they kill.
      * Soul points are used for magic such as healing or attack/defense spells.
      * Due to the nature of soul magic mages are considered terrifying and are rare to expose themselves.
-     *
+     * <p>
      * A Character has 6 primary attributes:
+     * <p>
      *   Strength     - Carry weight, Melee  Attack/Damage bonuses
+     *   <p>
      *   Dexterity    - Speed, Dodge, Ranged Attack bonuses
+     *   <p>
      *   Constitution - Hit Point bonuses
+     *   <p>
      *   Wisdom       - Soul bonuses
+     *   <p>
      *   Intelligence - Skill bonuses
+     *   <p>
      *   Charisma     - Relation bonuses
      *
-     * @param firstName the first name of the character
+     * @param hitDie Dice representing the die to roll to increase HP per level
+     * @param currentPlace Place representing the initial location of the character, this is also considered their home
      */
-    public AbstractCharacter(String firstName, String lastName, int level, Dice hitDie, int soulPoints, Place currentPlace) {
+    public AbstractCharacter(Dice hitDie, Place currentPlace) {
         characterCount++;
         this.alive = true;
-        this.birthDay = new Dice(30).roll(); // random birthday between 1-30
-        this.birthMonth = new Dice(12).roll(); // random birth month between 1-12
+        this.birthDay = new Dice(GameState.DAYS_PER_MONTH).roll(); // random birthday between 1-30
+        this.birthMonth = new Dice(GameState.MONTHS_PER_YEAR).roll(); // random birth month between 1-12
         this.home = currentPlace;
         this.currentPlace = currentPlace;
-        this.firstName = firstName;
-        this.lastName = lastName;
-        this.level = level;
+        this.firstName = Names.getName();
+        this.lastName = Names.getName();
 
-        // Level 1 attribute roll
-        Dice attributeDice = getAttributeDice();
-        this.attributes = new int[] {
-                attributeDice.roll(),
-                attributeDice.roll(),
-                attributeDice.roll(),
-                attributeDice.roll(),
-                attributeDice.roll(),
-                attributeDice.roll()
-        };
+        this.attributes = new Attributes();
 
         // level 1 hit points = hitDie + constitution modifier
         this.hitDie = hitDie;
-        int startingHP = (hitDie.getFaces() * hitDie.getAmount()) + getAttributeModifier(Attribute.CONSTITUTION);
+        int startingHP = (hitDie.getFaces() * hitDie.getAmount()) + attributes.getAttributeModifier(Attribute.CONSTITUTION);
         if(startingHP < 1) {
             startingHP = 1;
         }
         this.maxHitPoints = startingHP;
         this.hitPoints = maxHitPoints;
-        this.soulPoints = soulPoints;
+        // processing higher levels should be done in implementing objects
+    }
+
+    /**
+     * Used for player character creation, as the player doesn't have an initial place until GameState.createWorld
+     * NPCs are not generated until after GameState.createWorld
+     * @param hitDie Dice representing the die to roll to increase HP per level
+     */
+    public AbstractCharacter(Dice hitDie) {
+        characterCount++;
+        this.alive = true;
+        this.birthDay = new Dice(GameState.DAYS_PER_MONTH).roll(); // random birthday between 1-30
+        this.birthMonth = new Dice(GameState.MONTHS_PER_YEAR).roll(); // random birth month between 1-12
+        this.firstName = Names.getName();
+        this.lastName = Names.getName();
+
+        this.attributes = new Attributes();
+
+        // level 1 hit points = hitDie + constitution modifier
+        this.hitDie = hitDie;
+        int startingHP = (hitDie.getFaces() * hitDie.getAmount()) + attributes.getAttributeModifier(Attribute.CONSTITUTION);
+        if(startingHP < 1) {
+            startingHP = 1;
+        }
+        this.maxHitPoints = startingHP;
+        this.hitPoints = maxHitPoints;
         // processing higher levels should be done in implementing objects
     }
 
     // pure getters
+
     public String getFirstName() { return firstName; }
 
     public String getLastName() { return lastName; }
@@ -114,8 +150,6 @@ public abstract class AbstractCharacter {
     public int getXP() { return xp; }
 
     public int getAge() { return age; }
-
-    public int getMaxAge() { return maxAge; }
 
     public int getBirthDay() { return birthDay; }
 
@@ -129,13 +163,13 @@ public abstract class AbstractCharacter {
 
     public int getSoulPoints() { return soulPoints; }
 
-    public int getMaxCarryWeight() { return maxCarryWeight; }
-
     public boolean isAlive() { return alive; }
 
     public Place getCurrentPlace() { return currentPlace; }
 
     public Place getHome() { return home; }
+
+    public Profession getProfession() { return profession; }
 
     public Area getCurrentArea() { return ((Area) currentPlace.getParent()); }
 
@@ -143,66 +177,44 @@ public abstract class AbstractCharacter {
 
     // logical getters
 
-    public int getAttribute(Attribute attribute) { return attributes[attribute.ordinal()]; }
-
-    public int getAttributeModifier(Attribute attribute) { return (getAttribute(attribute) - 10) / 2; }
-
-    public int getNeededXP() { return (level + 1) * 1000; }
-
-    public String getAttributeString() {
-        return String.format(
-                """
-                      STR: %2d %s%d
-                      DEX: %2d %s%d
-                      CON: %2d %s%d
-                      WIS: %2d %s%d
-                      INT: %2d %s%d
-                      CHA: %2d %s%d
-                    """,
-                getAttribute(Attribute.STRENGTH),
-                getAttributeModifier(Attribute.STRENGTH) > 0 ? "+" :
-                        getAttributeModifier(Attribute.STRENGTH) == 0 ? " " : "",
-                getAttributeModifier(Attribute.STRENGTH),
-
-                getAttribute(Attribute.DEXTERITY),
-                getAttributeModifier(Attribute.DEXTERITY) > 0 ? "+" :
-                        getAttributeModifier(Attribute.DEXTERITY) == 0 ? " " : "",
-                getAttributeModifier(Attribute.DEXTERITY),
-
-                getAttribute(Attribute.CONSTITUTION),
-                getAttributeModifier(Attribute.CONSTITUTION) > 0 ? "+" :
-                        getAttributeModifier(Attribute.CONSTITUTION) == 0 ? " " : "",
-                getAttributeModifier(Attribute.CONSTITUTION),
-
-                getAttribute(Attribute.WISDOM),
-                getAttributeModifier(Attribute.WISDOM) > 0 ? "+" :
-                        getAttributeModifier(Attribute.WISDOM) == 0 ? " " : "",
-                getAttributeModifier(Attribute.WISDOM),
-
-                getAttribute(Attribute.INTELLIGENCE),
-                getAttributeModifier(Attribute.INTELLIGENCE) > 0 ? "+" :
-                        getAttributeModifier(Attribute.INTELLIGENCE) == 0 ? " " : "",
-                getAttributeModifier(Attribute.INTELLIGENCE),
-
-                getAttribute(Attribute.CHARISMA),
-                getAttributeModifier(Attribute.CHARISMA) > 0 ? "+" :
-                        getAttributeModifier(Attribute.CHARISMA) == 0 ? " " : "",
-                getAttributeModifier(Attribute.CHARISMA)
-        );
+    public int getCarriedWeight() {
+        int weight = 0;
+        for(AbstractItem item: inventory) {
+            weight += item.getWeight();
+        }
+        if(equippedWeapon != null) {
+            weight += equippedWeapon.getWeight();
+        }
+        if(equippedArmor != null) {
+            weight += equippedArmor.getWeight();
+        }
+        return weight;
     }
+
+    public int getMaxCarryWeight() { return 100 + (10 * attributes.getAttributeModifier(Attribute.STRENGTH)); }
+
+    public int getNeededXP() { return (level + 1) * XP_SCALE; }
 
     public String getCharacterSheet() {
         StringBuilder result = new StringBuilder();
-        result.append("  Name: ").append(getFirstName()).append("\n");
-        result.append("    XP: ").append(getXP()).append("\n");
-        result.append("LVL UP: ").append(getNeededXP()).append("\n");
-        result.append("   Age: ").append(getAge()).append("\n");
-        result.append(" Level: ").append(getLevel()).append("\n");
-        result.append("    HD: ").append(getHitDie().getInfoString()).append("\n");
-        result.append("    HP: ").append(getHitPoints()).append("/").append(getMaxHitPoints()).append("\n");
-        result.append("    SP: ").append(getSoulPoints()).append("\n");
-        result.append("\n").append(getAttributeString());
-
+        result.append("F. Name: ").append(getFirstName()).append("\n");
+        result.append("L. Name: ").append(getLastName()).append("\n");
+        result.append("     XP: ").append(getXP()).append("\n");
+        result.append(" LVL UP: ").append(getNeededXP()).append("\n");
+        result.append("    Age: ").append(getAge()).append("\n");
+        result.append("  Birth: ").append(getBirthMonth()).append("/").append(getBirthDay()).append("\n");
+        result.append("  Level: ").append(getLevel()).append("\n");
+        result.append("     HD: ").append(getHitDie()).append("\n");
+        result.append("     HP: ").append(getHitPoints()).append("/").append(getMaxHitPoints()).append("\n");
+        result.append("     SP: ").append(getSoulPoints()).append("\n");
+        result.append("\n").append(attributes).append("\n");
+        if(equippedWeapon != null) {
+            result.append(" Weapon: ").append(equippedWeapon.getName()).append("\n");
+        }
+        if(equippedArmor != null) {
+            result.append("  Armor: ").append(equippedArmor.getName()).append("\n");
+        }
+        result.append(" Weight: ").append(getCarriedWeight()).append("/").append(getMaxCarryWeight()).append("\n");
         return result.toString();
     }
 
@@ -210,14 +222,14 @@ public abstract class AbstractCharacter {
 
     public void setCurrentPlace(Place toMove) { currentPlace = toMove; }
 
-    // static
+    public void setHome(Place newHome) { home = newHome; }
+
+    // static getter
 
     public static int getCharacterCount() { return characterCount; }
 
-    public static Dice getAttributeDice() { return attributeDice; }
-
     /**
-     * An hour has passed
+     * All child classes use super.tick() to advance age of the character and die at maxAge
      */
     public void tick() {
         // child classes should overwrite and call super

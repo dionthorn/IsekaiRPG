@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<?import javafx.scene.text.Text?>
+<BorderPane fx:controller="org.dionthorn.isekairpg.controllers.StartScreenController" xmlns:fx="http://javafx.com/fxml">
+    <top>
+        <HBox fx:id="topBar" style="-fx-background-color: #336699; -fx-font: 20 Consolas;" minHeight="32">
+            <padding><Insets top="10" right="10" bottom="10" left="10"/></padding>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Text text="Welcome to IsekaiRPG!"/>
+            <Region HBox.hgrow="ALWAYS"/>
+        </HBox>
+    </top>
+    <center>
+        <GridPane fx:id="centerGridPane" style="-fx-font: 12 Consolas;" minWidth="32" alignment="CENTER">
+            <padding><Insets top="10" right="10" bottom="10" left="10"/></padding>
+            <VBox alignment="CENTER" spacing="10">
+                <padding><Insets top="10" right="10" bottom="10" left="10"/></padding>
+                <Button fx:id="newGameBtn" text="New Game" onAction="#onNewGame" alignment="CENTER"/>
+                <Button fx:id="exitGameBtn" text="Exit Game" onAction="#onExitGame" alignment="CENTER"/>
+            </VBox>
+        </GridPane>
+    </center>
+    <left>
+        <VBox fx:id="leftBar" style="-fx-background-color: #336699; -fx-font: 12 Consolas;" minWidth="32" spacing="5" alignment="CENTER">
+            <padding><Insets top="10" right="10" bottom="10" left="10"/></padding>
+        </VBox>
+    </left>
+    <right>
+        <VBox fx:id="rightBar" style="-fx-background-color: #336699; -fx-font: 12 Consolas;" minWidth="32" spacing="5">
+            <padding><Insets top="10" right="10" bottom="10" left="10"/></padding>
+        </VBox>
+    </right>
+    <bottom>
+        <TextArea fx:id="bottomConsole" prefWidth="1024" prefHeight="192" style="-fx-font: 12 Consolas;"/>
+    </bottom>
+</BorderPane>

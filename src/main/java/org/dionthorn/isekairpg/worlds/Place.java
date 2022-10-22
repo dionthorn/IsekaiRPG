@@ -1,48 +1,38 @@
 package org.dionthorn.isekairpg.worlds;
 
+/**
+ * The Place class has a Type which determines how the Place is represented and if NPCs will be spawned in there
+ */
 public class Place extends AbstractLocation {
 
-    private final Type type;
+    private Type type;
 
     /**
-     * HOME - an owned house
+     * LODGING - an owned home or inn
      * TRADER - a shop that can buy and sell goods has a merchant NPC
      * BLACKSMITH - a forge has a blacksmith NPC
-     * FARMSTEAD - a farm has a farmer NPC
-     * FISHING - a fishing area has a fisherman NPC
-     * HUNTING - a hunting area has a hunter NPC
-     * FORESTRY - a forestry area has a lumberjack NPC
+     * AGRICULTURE - a farm has a farmer NPC
+     * FISHERY - a fishing area has a fisherman NPC
+     * RESERVE - a hunting area has a hunter NPC
+     * WOODLAND - a forestry area has a lumberjack NPC
      * MINE - a mining area has a miner NPC
-     * CAVE - random encounter
-     * ROOM - a generic room place could be a castle room or dungeon room or inn if in a town/village
-     * OUTDOORS - a generic outside place if WILD has hostile NPC if TAMED has no hostile NPC
+     * CAVE - Mage or Bandits
+     * INDOORS - a generic indoor place could be a castle room or dungeon room
+     * OUTDOORS - a generic outside place if WILD has hostile NPC encounters if SAFE has no hostile NPC
+     * KINGSROOM - a special room in a castle that holds the King of the Nation
      */
+    // You are at [placeName] a [Place.Type] in [areaName] a [Area.Setting] of [regionName] a [Region.Biome] region
     public enum Type {
-        HOME,
-        TRADER,
-        BLACKSMITH,
-        FARMSTEAD,
-        FISHING,
-        HUNTING,
-        FORESTRY,
-        MINE,
-        CAVE,
-        ROOM,
-        OUTDOORS
+        LODGING, TRADER, BLACKSMITH, AGRICULTURE, FISHERY, RESERVE,
+        WOODLAND, MINE, CAVE, INDOORS, OUTDOORS, KINGSROOM
     }
 
     /**
-     * The Player occupies a single Place at a time.
-     * A Place can have many occupants other than the player or none.
-     * A Place may have workable resources such as farms, woods, mines, etc.
-     *
-     * Areas are made of Places
-     *   - An area could be a Town (made of shops Places and home places), Dungeon (filled with room Places), etc.
-     *
-     * Regions are made of Areas
-     *   - A region is biome level macroscopic so a large forest, mountain, fertile plains, tundra, desert, region.
-     *
-     * The World is made of Regions
+     * A Place is a part of an Area and has a Type which determines how the Place is handled
+     * @param parent Area representing this Place parent Area
+     * @param type Type representing this Place type
+     * @param x int representing this Place x coordinate
+     * @param y int representing this Place y coordinate
      */
     public Place(Area parent, Type type, int x, int y) {
         super(x, y);
@@ -50,6 +40,17 @@ public class Place extends AbstractLocation {
         this.type = type;
     }
 
+    /**
+     * Provides this Place associated Type
+     * @return Type representing this Place type
+     */
     public Type getType() { return type; }
+
+    /**
+     * used to set the KINGSROOM, can also be used to convert outdoors into another type
+     * example: player builds a house
+     * @param newType Place.Type representing the new type to set this Place
+     */
+    public void setType(Place.Type newType) { this.type = newType; }
 
 }

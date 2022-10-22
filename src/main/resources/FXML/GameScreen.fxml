@@ -21,19 +21,30 @@
         </GridPane>
     </center>
     <left>
-        <VBox fx:id="leftBar" style="-fx-background-color: #336699; -fx-font: 12 Consolas;" minWidth="32">
+        <VBox fx:id="leftBar" style="-fx-background-color: #336699; -fx-font: 12 Consolas;" minWidth="32" spacing="5" alignment="CENTER">
             <padding><Insets top="10" right="10" bottom="10" left="10"/></padding>
             <Text fx:id="playerSheet"/>
+            <Region VBox.vgrow="ALWAYS"/>
+            <Button fx:id="moveNorth" text="North" onAction="#onMoveNorth"/>
+            <HBox spacing="5" alignment="CENTER">
+                <Button fx:id="moveWest" text="West" onAction="#onMoveWest"/>
+                <Button fx:id="moveEast" text="East" onAction="#onMoveEast"/>
+            </HBox>
+            <Button fx:id="moveSouth" text="South" onAction="#onMoveSouth"/>
         </VBox>
     </left>
     <right>
-        <VBox fx:id="rightBar" style="-fx-background-color: #336699; -fx-font: 12 Consolas;" minWidth="32">
+        <VBox fx:id="rightBar" style="-fx-background-color: #336699; -fx-font: 12 Consolas;" minWidth="32" spacing="5">
             <padding><Insets top="10" right="10" bottom="10" left="10"/></padding>
+            <Button fx:id="mapRegionsBtn" text="Map Regions" onAction="#onMapRegions"/>
+            <Button fx:id="mapAreasBtn" text="Map Areas" onAction="#onMapAreas"/>
+            <Button fx:id="mapPlacesBtn" text="Map Places" onAction="#onMapPlaces"/>
             <Region VBox.vgrow="ALWAYS"/>
+            <Button fx:id="lookBtn" text="Look" onAction="#onLook"/>
             <Button fx:id="waitBtn" text="Wait" onAction="#onWait"/>
         </VBox>
     </right>
     <bottom>
-        <TextArea fx:id="console" prefWidth="1024" prefHeight="192" style="-fx-font: 12 Consolas;"/>
+        <TextArea fx:id="bottomConsole" prefWidth="1024" prefHeight="192" style="-fx-font: 12 Consolas;"/>
     </bottom>
 </BorderPane>

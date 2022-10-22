@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<?import javafx.scene.text.Text?>
+<BorderPane fx:controller="org.dionthorn.isekairpg.controllers.CharacterCreationScreenController" xmlns:fx="http://javafx.com/fxml">
+    <top>
+        <HBox fx:id="topBar" style="-fx-background-color: #336699; -fx-font: 20 Consolas;" minHeight="32">
+            <padding><Insets top="10" right="10" bottom="10" left="10"/></padding>
+        </HBox>
+    </top>
+    <center>
+        <GridPane fx:id="centerGridPane" style="-fx-font: 12 Consolas;" minWidth="32">
+            <padding><Insets top="10" right="10" bottom="10" left="10"/></padding>
+            <Text fx:id="playerSheet" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+            <Button fx:id="rerollBtn" text="Reroll" onAction="#onRerollBtn" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+        </GridPane>
+    </center>
+    <left>
+        <VBox fx:id="leftBar" style="-fx-background-color: #336699; -fx-font: 12 Consolas;" minWidth="32" spacing="5" alignment="CENTER">
+            <padding><Insets top="10" right="10" bottom="10" left="10"/></padding>
+        </VBox>
+    </left>
+    <right>
+        <VBox fx:id="rightBar" style="-fx-background-color: #336699; -fx-font: 12 Consolas;" minWidth="32" spacing="5">
+            <padding><Insets top="10" right="10" bottom="10" left="10"/></padding>
+            <Text text="World Size"/>
+            <ComboBox fx:id="worldSizeBox"/>
+            <Region VBox.vgrow="ALWAYS"/>
+            <Button fx:id="startBtn" text="Start" onAction="#onStartBtn"/>
+        </VBox>
+    </right>
+    <bottom>
+        <TextArea fx:id="bottomConsole" prefWidth="1024" prefHeight="192" style="-fx-font: 12 Consolas;"/>
+    </bottom>
+</BorderPane>

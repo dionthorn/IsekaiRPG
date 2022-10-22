@@ -11,7 +11,7 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <junit.version>5.8.2</junit.version>
+        <junit.version>5.9.0</junit.version>
     </properties>
 
     <dependencies>
@@ -60,7 +60,7 @@
                         <!-- Default configuration for running with: mvn clean javafx:run -->
                         <id>default-cli</id>
                         <configuration>
-                            <mainClass>org.dionthorn.isekairpg/org.dionthorn.isekairpg.HelloApplication</mainClass>
+                            <mainClass>org.dionthorn.isekairpg/org.dionthorn.isekairpg.App</mainClass>
                         </configuration>
                     </execution>
                 </executions>
