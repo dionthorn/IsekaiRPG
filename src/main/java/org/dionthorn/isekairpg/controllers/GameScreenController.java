@@ -27,6 +27,7 @@ public class GameScreenController extends AbstractScreenController {
     // FXML defined nodes
     @FXML private Text timeInfo;
     @FXML private Text playerSheet;
+    @FXML private Text coordinateText;
 
     // Used to remember actions the player has taken as String representations
     ArrayList<String> actionStrings = new ArrayList<>();
@@ -66,21 +67,21 @@ public class GameScreenController extends AbstractScreenController {
     @FXML
     public void onMapRegions() {
         mapRegions();
-        actionStrings.add("You viewed the world map of all regions");
+        actionStrings.add("You viewed the world map of all regions.");
         updateConsole();
     }
 
     @FXML
     public void onMapAreas() {
         mapAreas();
-        actionStrings.add("You viewed the areas map of your current region");
+        actionStrings.add("You viewed the areas map of your current region.");
         updateConsole();
     }
 
     @FXML
     public void onMapPlaces() {
         mapPlaces();
-        actionStrings.add("You viewed the places map of your current area");
+        actionStrings.add("You viewed the places map of your current area.");
         updateConsole();
     }
 
@@ -101,7 +102,7 @@ public class GameScreenController extends AbstractScreenController {
             result.append("You see: \n");
             int seenCount = 0;
             for(NPC npc: npcPresent) {
-                result.append("  (").append(seenCount++).append(") ");
+                result.append("  (").append(++seenCount).append(") ");
                 result.append(npc.getFirstName()).append(" ")
                         .append(npc.getLastName()).append(" the ")
                         .append(npc.getProfession().name().toLowerCase()).append(" from ")
@@ -118,6 +119,28 @@ public class GameScreenController extends AbstractScreenController {
         updateConsole();
     }
 
+    @FXML
+    public void onSleep() {
+        // if player is at a   lodging, sleep costs money unless they own it. Gives 1d8 HP
+        // if player is at an outdoors, sleep is free but less effective.     Gives 1d4 HP
+        GameState gameState = Engine.getGameState();
+        Player player = gameState.getPlayer();
+        if(player.getCurrentPlace().getType() == Place.Type.OUTDOORS) {
+            gameState.tick(8);
+            int heal = Dice.d4.roll();
+            actionStrings.add("You camp out for 8 hours and heal for: " + heal);
+            player.setHP(player.getHP());
+        } else if(player.getCurrentPlace().getType() == Place.Type.LODGING) {
+            gameState.tick(8);
+            int heal = Dice.d8.roll();
+            actionStrings.add("You rest in for 8 hours and heal for: " + heal);
+            player.setHP(player.getHP());
+        } else {
+            actionStrings.add("You cannot sleep here!");
+        }
+        update();
+    }
+
     /**
      * Will update the console
      */
@@ -125,8 +148,8 @@ public class GameScreenController extends AbstractScreenController {
         GameState gameState = Engine.getGameState();
         Player player = gameState.getPlayer();
 
-        // tells the player where they are currently located
-        String locationInfo = String.format("You are at %s a %s in %s a %s of %s a %s region",
+        // describes to the player where they are currently located
+        String locationInfo = String.format("You are at %s %s in %s a %s of %s a %s region",
                 player.getCurrentPlace().getName(),
                 player.getCurrentPlace().getType().name().toLowerCase(Locale.ROOT),
                 player.getCurrentArea().getName(),
@@ -135,8 +158,7 @@ public class GameScreenController extends AbstractScreenController {
                 player.getCurrentRegion().getBiome().name().toLowerCase(Locale.ROOT)
         );
 
-
-        bottomConsole.setText(locationInfo); // setText clears the console then we add the locationInfo String
+        bottomConsole.setText(locationInfo);
         for(String actionString: actionStrings) {
             bottomConsole.appendText("\n" + actionString); // add all actionString
         }
@@ -152,6 +174,16 @@ public class GameScreenController extends AbstractScreenController {
         Player player = gameState.getPlayer();
 
         playerSheet.setText(player.getCharacterSheet()); // update player character sheet info
+        // gives the full coordinate of the location R(x,y) A(x,y) P(x,y)
+        Region currentRegion = player.getCurrentRegion();
+        Area currentArea = player.getCurrentArea();
+        Place currentPlace = player.getCurrentPlace();
+        String locationCoordinate = String.format("Coordinates:\n  Region (%d,%d)\n  Area   (%d,%d)\n  Place  (%d,%d)\n",
+                currentRegion.getX(), currentRegion.getY(),
+                currentArea.getX(), currentArea.getY(),
+                currentPlace.getX(), currentPlace.getY()
+        );
+        coordinateText.setText(locationCoordinate);
         timeInfo.setText(gameState.getDateString()); // update date string
 
         mapPlaces(); // show the current places map
@@ -164,9 +196,9 @@ public class GameScreenController extends AbstractScreenController {
     public void consoleHelpPrompt() {
         bottomConsole.setText("help -- shows this prompt");
         bottomConsole.appendText("\nmap [world, regions, areas, places]");
-        bottomConsole.appendText("\nmap [world, regions]                   -- display a map of all regions in the world");
-        bottomConsole.appendText("\nmap [areas]                            -- display a map of the areas   in the players current region");
-        bottomConsole.appendText("\nmap [places]                           -- display a map of the places  in the players current area");
+        bottomConsole.appendText("\nmap [world, regions] -- display a map of all regions in the world");
+        bottomConsole.appendText("\nmap [areas]          -- display a map of the areas   in the players current region");
+        bottomConsole.appendText("\nmap [places]         -- display a map of the places  in the players current area");
         bottomConsole.appendText("\nmove [north, west, east, south] -- move the player in the given direction");
         bottomConsole.appendText("\nmove [n, w, e, s]               -- same as above");
         bottomConsole.appendText("\nlook -- list the names of all characters present");
@@ -242,10 +274,12 @@ public class GameScreenController extends AbstractScreenController {
                 player.getCurrentPlace().getX(),
                 player.getCurrentPlace().getY()
         ));
-        GridPane.setConstraints(placeMap, 0, 0, 1, 2);
+        GridPane.setConstraints(placeMap, 0, 0, 3, 1);
         Text placeKey = new Text(player.getCurrentArea().getKey());
-        GridPane.setConstraints(placeKey, 1, 0);
-        centerGridPane.getChildren().addAll(placeKey, placeMap);
+        GridPane.setConstraints(placeKey, 0, 1);
+        Text placeCount = new Text(player.getCurrentArea().getPlaceCount());
+        GridPane.setConstraints(placeCount, 1, 1);
+        centerGridPane.getChildren().addAll(placeKey, placeMap, placeCount);
     }
 
     /**
@@ -259,10 +293,12 @@ public class GameScreenController extends AbstractScreenController {
                 player.getCurrentArea().getX(),
                 player.getCurrentArea().getY()
         ));
-        GridPane.setConstraints(areaMap, 0, 0, 1, 2);
+        GridPane.setConstraints(areaMap, 0, 0, 3, 1);
         Text areaKey = new Text(player.getCurrentRegion().getKey());
-        GridPane.setConstraints(areaKey, 1, 0);
-        centerGridPane.getChildren().addAll(areaKey, areaMap);
+        GridPane.setConstraints(areaKey, 0, 1);
+        Text areaCount = new Text(player.getCurrentRegion().getAreaCount());
+        GridPane.setConstraints(areaCount, 1, 1);
+        centerGridPane.getChildren().addAll(areaKey, areaMap, areaCount);
     }
 
     /**
@@ -277,10 +313,12 @@ public class GameScreenController extends AbstractScreenController {
                 player.getCurrentRegion().getX(),
                 player.getCurrentRegion().getY()
         ));
-        GridPane.setConstraints(regionMap, 0, 0, 1, 2);
+        GridPane.setConstraints(regionMap, 0, 0, 3, 1);
         Text regionKey = new Text(world.getKey());
-        GridPane.setConstraints(regionKey, 1, 0);
-        centerGridPane.getChildren().addAll(regionKey, regionMap);
+        GridPane.setConstraints(regionKey, 0, 1);
+        Text regionCount = new Text(world.getRegionCount());
+        GridPane.setConstraints(regionCount, 1, 1);
+        centerGridPane.getChildren().addAll(regionKey, regionMap, regionCount);
     }
 
     /**
@@ -399,5 +437,4 @@ public class GameScreenController extends AbstractScreenController {
 
         update();
     }
-
 }

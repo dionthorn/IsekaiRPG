@@ -84,7 +84,7 @@ public class Region extends AbstractLocation {
                 int castleX = chanceX.roll() - 1;
                 int castleY = chanceY.roll() - 1;
                 if(areas[castleY][castleX].getSetting() == Area.Setting.WILDS ||
-                        areas[castleY][castleX].getSetting() == Area.Setting.SAFE) {
+                        areas[castleY][castleX].getSetting() == Area.Setting.SAFEZONE) {
                     areas[castleY][castleX] = new Area(this, Area.Setting.CASTLE, castleX, castleY);
                     // tame land around castle
                     tameAround(castleX, castleY);
@@ -98,7 +98,7 @@ public class Region extends AbstractLocation {
                     int townX = chanceX.roll() - 1;
                     int townY = chanceY.roll() - 1;
                     if(areas[townY][townX].getSetting() == Area.Setting.WILDS ||
-                            areas[townY][townX].getSetting() == Area.Setting.SAFE) {
+                            areas[townY][townX].getSetting() == Area.Setting.SAFEZONE) {
                         areas[townY][townX] = new Area(this, Area.Setting.TOWN, townX, townY);
                         // tame land around town
                         tameAround(townX, townY);
@@ -114,7 +114,7 @@ public class Region extends AbstractLocation {
                     int villageX = chanceX.roll() - 1;
                     int villageY = chanceY.roll() - 1;
                     if(areas[villageY][villageX].getSetting() == Area.Setting.WILDS ||
-                            areas[villageY][villageX].getSetting() == Area.Setting.SAFE) {
+                            areas[villageY][villageX].getSetting() == Area.Setting.SAFEZONE) {
                         areas[villageY][villageX] = new Area(this, Area.Setting.VILLAGE, villageX, villageY);
                         tameAround(villageX, villageY);
                         validVillageSpot = true;
@@ -129,7 +129,7 @@ public class Region extends AbstractLocation {
                     int hamletX = chanceX.roll() - 1;
                     int hamletY = chanceY.roll() - 1;
                     if(areas[hamletY][hamletX].getSetting() == Area.Setting.WILDS ||
-                            areas[hamletY][hamletX].getSetting() == Area.Setting.SAFE) {
+                            areas[hamletY][hamletX].getSetting() == Area.Setting.SAFEZONE) {
                         areas[hamletY][hamletX] = new Area(this, Area.Setting.HAMLET, hamletX, hamletY);
                         validHamletSpot = true;
                     }
@@ -162,7 +162,7 @@ public class Region extends AbstractLocation {
                 int townX = chanceX.roll() - 1;
                 int townY = chanceY.roll() - 1;
                 if(areas[townY][townX].getSetting() == Area.Setting.WILDS ||
-                        areas[townY][townX].getSetting() == Area.Setting.SAFE) {
+                        areas[townY][townX].getSetting() == Area.Setting.SAFEZONE) {
                     areas[townY][townX] = new Area(this, Area.Setting.TOWN, townX, townY);
                     tameAround(townX, townY);
                     validTownSpot = true;
@@ -178,7 +178,7 @@ public class Region extends AbstractLocation {
                 int villageX = chanceX.roll() - 1;
                 int villageY = chanceY.roll() - 1;
                 if(areas[villageY][villageX].getSetting() == Area.Setting.WILDS ||
-                        areas[villageY][villageX].getSetting() == Area.Setting.SAFE) {
+                        areas[villageY][villageX].getSetting() == Area.Setting.SAFEZONE) {
                     areas[villageY][villageX] = new Area(this, Area.Setting.VILLAGE, villageX, villageY);
                     tameAround(villageX, villageY);
                     validVillageSpot = true;
@@ -194,7 +194,7 @@ public class Region extends AbstractLocation {
                 int hamletX = chanceX.roll() - 1;
                 int hamletY = chanceY.roll() - 1;
                 if(areas[hamletY][hamletX].getSetting() == Area.Setting.WILDS ||
-                        areas[hamletY][hamletX].getSetting() == Area.Setting.SAFE) {
+                        areas[hamletY][hamletX].getSetting() == Area.Setting.SAFEZONE) {
                     areas[hamletY][hamletX] = new Area(this, Area.Setting.HAMLET, hamletX, hamletY);
                     validHamletSpot = true;
                 }
@@ -226,7 +226,7 @@ public class Region extends AbstractLocation {
                 int villageX = chanceX.roll() - 1;
                 int villageY = chanceY.roll() - 1;
                 if(areas[villageY][villageX].getSetting() == Area.Setting.WILDS ||
-                        areas[villageY][villageX].getSetting() == Area.Setting.SAFE) {
+                        areas[villageY][villageX].getSetting() == Area.Setting.SAFEZONE) {
                     areas[villageY][villageX] = new Area(this, Area.Setting.VILLAGE, villageX, villageY);
                     tameAround(villageX, villageY);
                     validVillageSpot = true;
@@ -242,7 +242,7 @@ public class Region extends AbstractLocation {
                 int hamletX = chanceX.roll() - 1;
                 int hamletY = chanceY.roll() - 1;
                 if(areas[hamletY][hamletX].getSetting() == Area.Setting.WILDS ||
-                        areas[hamletY][hamletX].getSetting() == Area.Setting.SAFE) {
+                        areas[hamletY][hamletX].getSetting() == Area.Setting.SAFEZONE) {
                     areas[hamletY][hamletX] = new Area(this, Area.Setting.HAMLET, hamletX, hamletY);
                     validHamletSpot = true;
                 }
@@ -281,7 +281,7 @@ public class Region extends AbstractLocation {
             for(int tameY=y-1; tameY<y+2; tameY++) {
                 if((tameX >= 0 && tameY >= 0) && (tameX < areaSize && tameY < areaSize)) {
                     if(areas[tameY][tameX].getSetting() == Area.Setting.WILDS) {
-                        areas[tameY][tameX] = new Area(this, Area.Setting.SAFE, tameX, tameY);
+                        areas[tameY][tameX] = new Area(this, Area.Setting.SAFEZONE, tameX, tameY);
                     }
                 }
             }
@@ -306,7 +306,6 @@ public class Region extends AbstractLocation {
                         highlightedName
                 )
         );
-        int[] settingCount = new int[Area.Setting.values().length];
         for(Area[] areaLayer: areas) {
             result.append("  ");
             for(Area area: areaLayer) {
@@ -315,19 +314,22 @@ public class Region extends AbstractLocation {
                 } else {
                     result.append(" ").append(area.getSetting().name(), 0, 1).append(" ");
                 }
-                settingCount[area.getSetting().ordinal()]++;
             }
             result.append("\n");
         }
-        result.append("\n");
+        return result.toString();
+    }
+
+    public String getAreaCount() {
+        StringBuilder result = new StringBuilder();
+        int[] settingCount = new int[Area.Setting.values().length];
+        for(Area[] areaLayer: areas) {
+            for(Area area: areaLayer) {
+                settingCount[area.getSetting().ordinal()]++;
+            }
+        }
         for(Area.Setting setting: Area.Setting.values()) {
-            result.append(
-                    String.format(
-                            "\n%-10s: %d",
-                            setting.name().toLowerCase(Locale.ROOT),
-                            settingCount[setting.ordinal()]
-                    )
-            );
+            result.append(String.format("\n: %d", settingCount[setting.ordinal()]));
         }
         return result.toString();
     }

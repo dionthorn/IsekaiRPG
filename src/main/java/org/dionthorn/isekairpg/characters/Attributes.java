@@ -6,12 +6,15 @@ public class Attributes {
 
     private static final Dice ATTRIBUTE_DICE = new Dice(3, 6); // 3d6 or 3-18 per stat
     // classes accessing attributes should import this enum for indexing
+    // import org.dionthorn.isekairpg.characters.Attributes.Attribute;
+    // so you can:
+    // attributes.getModifier(Attribute.STRENGTH)
     public enum Attribute { STRENGTH, DEXTERITY, CONSTITUTION, WISDOM, INTELLIGENCE, CHARISMA }
 
     protected int[] attributes; // Attribute.ordinal() to index
 
     public Attributes() {
-        // Level 1 attribute roll
+        // Level 1 attribute roll 3d6 per attribute
         this.attributes = new int[] {
                 ATTRIBUTE_DICE.roll(),
                 ATTRIBUTE_DICE.roll(),
@@ -22,9 +25,9 @@ public class Attributes {
         };
     }
 
-    public int getAttribute(Attribute attribute) { return attributes[attribute.ordinal()]; }
+    public int get(Attribute attribute) { return attributes[attribute.ordinal()]; }
 
-    public int getAttributeModifier(Attribute attribute) { return (getAttribute(attribute) - 10) / 2; }
+    public int getModifier(Attribute attribute) { return (get(attribute) - 10) / 2; }
 
     @Override
     public String toString() {
@@ -37,35 +40,35 @@ public class Attributes {
                       INT: %2d %s%d
                       CHA: %2d %s%d
                     """,
-                getAttribute(Attribute.STRENGTH),
-                getAttributeModifier(Attribute.STRENGTH) > 0 ? "+" :
-                        getAttributeModifier(Attribute.STRENGTH) == 0 ? " " : "",
-                getAttributeModifier(Attribute.STRENGTH),
+                get(Attribute.STRENGTH),
+                getModifier(Attribute.STRENGTH) > 0 ? "+" :
+                        getModifier(Attribute.STRENGTH) == 0 ? " " : "",
+                getModifier(Attribute.STRENGTH),
 
-                getAttribute(Attribute.DEXTERITY),
-                getAttributeModifier(Attribute.DEXTERITY) > 0 ? "+" :
-                        getAttributeModifier(Attribute.DEXTERITY) == 0 ? " " : "",
-                getAttributeModifier(Attribute.DEXTERITY),
+                get(Attribute.DEXTERITY),
+                getModifier(Attribute.DEXTERITY) > 0 ? "+" :
+                        getModifier(Attribute.DEXTERITY) == 0 ? " " : "",
+                getModifier(Attribute.DEXTERITY),
 
-                getAttribute(Attribute.CONSTITUTION),
-                getAttributeModifier(Attribute.CONSTITUTION) > 0 ? "+" :
-                        getAttributeModifier(Attribute.CONSTITUTION) == 0 ? " " : "",
-                getAttributeModifier(Attribute.CONSTITUTION),
+                get(Attribute.CONSTITUTION),
+                getModifier(Attribute.CONSTITUTION) > 0 ? "+" :
+                        getModifier(Attribute.CONSTITUTION) == 0 ? " " : "",
+                getModifier(Attribute.CONSTITUTION),
 
-                getAttribute(Attribute.WISDOM),
-                getAttributeModifier(Attribute.WISDOM) > 0 ? "+" :
-                        getAttributeModifier(Attribute.WISDOM) == 0 ? " " : "",
-                getAttributeModifier(Attribute.WISDOM),
+                get(Attribute.WISDOM),
+                getModifier(Attribute.WISDOM) > 0 ? "+" :
+                        getModifier(Attribute.WISDOM) == 0 ? " " : "",
+                getModifier(Attribute.WISDOM),
 
-                getAttribute(Attribute.INTELLIGENCE),
-                getAttributeModifier(Attribute.INTELLIGENCE) > 0 ? "+" :
-                        getAttributeModifier(Attribute.INTELLIGENCE) == 0 ? " " : "",
-                getAttributeModifier(Attribute.INTELLIGENCE),
+                get(Attribute.INTELLIGENCE),
+                getModifier(Attribute.INTELLIGENCE) > 0 ? "+" :
+                        getModifier(Attribute.INTELLIGENCE) == 0 ? " " : "",
+                getModifier(Attribute.INTELLIGENCE),
 
-                getAttribute(Attribute.CHARISMA),
-                getAttributeModifier(Attribute.CHARISMA) > 0 ? "+" :
-                        getAttributeModifier(Attribute.CHARISMA) == 0 ? " " : "",
-                getAttributeModifier(Attribute.CHARISMA)
+                get(Attribute.CHARISMA),
+                getModifier(Attribute.CHARISMA) > 0 ? "+" :
+                        getModifier(Attribute.CHARISMA) == 0 ? " " : "",
+                getModifier(Attribute.CHARISMA)
         );
     }
 

@@ -98,7 +98,6 @@ public class World extends AbstractLocation {
         StringBuilder result = new StringBuilder(
                 String.format("World of %s Region Map\nHighlighted Region: %s\n\n", getName(), highlightedName)
         );
-        int[] biomeCount = new int[Region.Biome.values().length];
         for(Region[] regionLayer: regions) {
             result.append("  ");
             for(Region region: regionLayer) {
@@ -107,15 +106,23 @@ public class World extends AbstractLocation {
                 } else {
                     result.append(" ").append(region.getBiome().name().charAt(0)).append(" ");
                 }
-                biomeCount[region.getBiome().ordinal()]++;
             }
             result.append("\n");
         }
-        result.append("\n");
-        for(Region.Biome biome: Region.Biome.values()) {
-            result.append(String.format("\n%-10s: %d", biome.name().toLowerCase(Locale.ROOT), biomeCount[biome.ordinal()]));
-        }
+        return result.toString();
+    }
 
+    public String getRegionCount() {
+        StringBuilder result = new StringBuilder();
+        int[] biomeCount = new int[Region.Biome.values().length];
+        for(Region[] regionLayer: regions) {
+            for(Region region: regionLayer) {
+                biomeCount[region.getBiome().ordinal()]++;
+            }
+        }
+        for(Region.Biome biome: Region.Biome.values()) {
+            result.append(String.format("\n: %d", biomeCount[biome.ordinal()]));
+        }
         return result.toString();
     }
 

@@ -20,12 +20,12 @@ import java.util.Arrays;
 public final class GameState {
 
     // time tracking variables
+    public static final int DAYS_PER_MONTH = 30; // 360 days a year
+    public static final int MONTHS_PER_YEAR = 12;
     private int currentYear = 1;
     private int currentMonth = 1;
     private int currentDay = 1;
     private int currentHour = 1;
-    public static final int DAYS_PER_MONTH = 30; // 360 days a year
-    public static final int MONTHS_PER_YEAR = 12;
     // Game variables
     private World world;
     private Player player;
@@ -117,6 +117,7 @@ public final class GameState {
         }
 
         // output list sizes to console
+        System.out.println("##### ##### ##### ##### ##### #####");
         System.out.println("Communities Generated: " + communities.size());
         System.out.println("    Castles Generated: " + castles.size());
         System.out.println("   Dungeons Generated: " + dungeons.size());
@@ -155,6 +156,7 @@ public final class GameState {
         placeNPCs();
 
         System.out.println("Characters Generated: " + AbstractCharacter.getCharacterCount());
+        System.out.println("##### ##### ##### ##### ##### #####");
     }
 
     /**
@@ -290,6 +292,8 @@ public final class GameState {
                 }
             }
         }
+        // tick player for aging logic
+        player.tick();
         // perform every NPC tick logic
         for(NPC npc: allNPCs) {
             npc.tick();

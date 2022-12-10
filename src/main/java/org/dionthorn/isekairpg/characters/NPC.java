@@ -2,6 +2,9 @@ package org.dionthorn.isekairpg.characters;
 
 import org.dionthorn.isekairpg.Engine;
 import org.dionthorn.isekairpg.GameState;
+import org.dionthorn.isekairpg.items.Armors;
+import org.dionthorn.isekairpg.items.Foods;
+import org.dionthorn.isekairpg.items.Weapons;
 import org.dionthorn.isekairpg.utilities.Dice;
 import org.dionthorn.isekairpg.worlds.Area;
 import org.dionthorn.isekairpg.worlds.Place;
@@ -19,7 +22,7 @@ public class NPC extends AbstractCharacter {
     public NPC(Dice hitDie, Place initialLocation) {
         super(hitDie, initialLocation);
 
-        this.age = new Dice(20).roll() + 20; // every NPC starts aged d20+20
+        this.age = new Dice(1,20, 20).roll(); // every NPC starts aged d20+20
         this.maxAge = age + new Dice(10, 6).roll(); // every NPC will die 10d6 years after start
 
         // set the NPC profession
@@ -27,45 +30,78 @@ public class NPC extends AbstractCharacter {
         if(placeType == Place.Type.LODGING) {
             if(Dice.d2.roll() == 1) {
                 profession = Profession.INNKEEPER;
+                this.equippedWeapon = Weapons.get(Weapons.Type.KUNAI);
+                this.equippedArmor = Armors.get(Armors.Type.CLOTH);
             } else {
                 profession = Profession.BUILDER;
+                this.equippedWeapon = Weapons.get(Weapons.Type.OTSUCHI);
+                this.equippedArmor = Armors.get(Armors.Type.CLOTH);
             }
         } else if(placeType == Place.Type.TRADER) {
             profession = Profession.TRADER;
+            this.equippedWeapon = Weapons.get(Weapons.Type.TONFA);
+            this.equippedArmor = Armors.get(Armors.Type.CLOTH);
         } else if(placeType == Place.Type.BLACKSMITH) {
             profession = Profession.BLACKSMITH;
+            this.equippedWeapon = Weapons.get(Weapons.Type.CHIGIRIKI);
+            this.equippedArmor = Armors.get(Armors.Type.CLOTH);
         } else if(placeType == Place.Type.AGRICULTURE) {
             profession = Profession.FARMER;
+            this.equippedWeapon = Weapons.get(Weapons.Type.KAMA);
+            this.equippedArmor = Armors.get(Armors.Type.CLOTH);
         } else if(placeType == Place.Type.FISHERY) {
             profession = Profession.FISHER;
+            this.equippedWeapon = Weapons.get(Weapons.Type.JUTTE);
+            this.equippedArmor = Armors.get(Armors.Type.CLOTH);
         } else if(placeType == Place.Type.RESERVE) {
             profession = Profession.HUNTER;
+            this.equippedWeapon = Weapons.get(Weapons.Type.YUMI);
+            this.equippedArmor = Armors.get(Armors.Type.CLOTH);
         } else if(placeType == Place.Type.WOODLAND) {
             profession = Profession.LUMBERJACK;
+            this.equippedWeapon = Weapons.get(Weapons.Type.ONO);
+            this.equippedArmor = Armors.get(Armors.Type.CLOTH);
         } else if(placeType == Place.Type.MINE) {
             profession = Profession.MINER;
+            this.equippedWeapon = Weapons.get(Weapons.Type.KUSARI);
+            this.equippedArmor = Armors.get(Armors.Type.CLOTH);
         } else if(placeType == Place.Type.CAVE) {
             if(Dice.d20.roll() == 20) {
                 // 5% chance of MAGE in caves
                 profession = Profession.MAGE;
+                this.equippedWeapon = Weapons.get(Weapons.Type.BO);
+                this.equippedArmor = Armors.get(Armors.Type.CLOTH);
             } else {
                 profession = Profession.BANDIT;
+                this.equippedWeapon = Weapons.get(Weapons.Type.TANTO);
+                this.equippedArmor = Armors.get(Armors.Type.CLOTH);
             }
         } else if(placeType == Place.Type.INDOORS) {
             Area parentArea = (Area) initialLocation.getParent();
             if(parentArea.getSetting() == Area.Setting.CASTLE) {
                 profession = Profession.SAMURAI;
+                this.equippedWeapon = Weapons.get(Weapons.Type.KATANA);
+                this.equippedArmor = Armors.get(Armors.Type.CLOTH);
             } else if(parentArea.getSetting() == Area.Setting.DUNGEON) {
                 if(Dice.d20.roll() > 16) {
                     // 20% chance of MAGE in dungeons
                     profession = Profession.MAGE;
+                    this.equippedWeapon = Weapons.get(Weapons.Type.BO);
+                    this.equippedArmor = Armors.get(Armors.Type.CLOTH);
                 } else {
                     profession = Profession.BANDIT;
+                    this.equippedWeapon = Weapons.get(Weapons.Type.TANTO);
+                    this.equippedArmor = Armors.get(Armors.Type.CLOTH);
                 }
             }
         } else if(placeType == Place.Type.KINGSROOM) {
             profession = Profession.DAIMYO;
+            this.equippedWeapon = Weapons.get(Weapons.Type.KATANA);
+            this.equippedArmor = Armors.get(Armors.Type.CLOTH);
         }
+
+        // all NPC start with rice for food
+        this.inventory.add(Foods.get(Foods.Type.RICE));
     }
 
     private void moveNPC(int directionX, int directionY) {

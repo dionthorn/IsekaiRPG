@@ -30,7 +30,7 @@ public class AbstractLocation {
      * @return String representing the locations map key
      */
     public String getKey() {
-        StringBuilder result = new StringBuilder("\n    Key:");
+        StringBuilder result = new StringBuilder();
         if(this instanceof Area) {
             for(Place.Type type: Place.Type.values()) {
                 String mapLetter = type.name().substring(0,1);

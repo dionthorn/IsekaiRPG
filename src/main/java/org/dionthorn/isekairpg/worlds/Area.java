@@ -20,7 +20,7 @@ public class Area extends AbstractLocation {
     // You are at [placeName] a [Place.Type] in [areaName] a [Area.Setting] of [regionName] a [Region.Biome] region
     public enum Setting {
         WILDS(10),
-        SAFE(10),
+        SAFEZONE(10),
         DUNGEON(5),
         HAMLET(4),
         VILLAGE(6),
@@ -51,7 +51,7 @@ public class Area extends AbstractLocation {
         for(int yPlace = 0; yPlace< setting.getSize(); yPlace++) {
             for(int xPlace = 0; xPlace< setting.getSize(); xPlace++) {
                 int roll = Dice.d20.roll(); // chance roll
-                if(setting == Setting.WILDS || setting == Setting.SAFE) {
+                if(setting == Setting.WILDS || setting == Setting.SAFEZONE) {
                     places[yPlace][xPlace] = new Place(this, Place.Type.OUTDOORS, xPlace, yPlace);
                 } else if(setting == Setting.DUNGEON) {
                     // dungeons are special cases they get rooms and caves filled with monsters
@@ -261,17 +261,18 @@ public class Area extends AbstractLocation {
      */
     public String getPlaceMap(int x, int y) {
         // we first add the title of the map
+        String highlightedName = getPlace(x, y).getName();
         StringBuilder result = new StringBuilder(
                 String.format(
-                        "%s of %s %s area map\n\n",
+                        "%s of %s %s area map\nHighlighted: %s\n\n",
                         ((Region) getParent()).getBiome().name().toLowerCase(Locale.ROOT),
                         getName(),
-                        setting.name().toLowerCase(Locale.ROOT)
+                        setting.name().toLowerCase(Locale.ROOT),
+                        highlightedName
                 )
         );
         // we draw the 'map' and highlight the x,y provided
         // as well we count the areas place types
-        int[] typeCount = new int[Place.Type.values().length];
         for(Place[] placeLayer: places) {
             result.append("  ");
             for(Place place: placeLayer) {
@@ -280,20 +281,24 @@ public class Area extends AbstractLocation {
                 } else {
                     result.append(" ").append(place.getType().name(), 0, 1).append(" ");
                 }
-                typeCount[place.getType().ordinal()]++;
             }
             result.append("\n");
         }
-        // display the count of each place type in this area
-        for(Place.Type type: Place.Type.values()) {
-            result.append(
-                    String.format(
-                            "\n%-12s: %d", type.name().toLowerCase(Locale.ROOT),
-                            typeCount[type.ordinal()]
-                    )
-            );
-        }
         // return the formatted result String
+        return result.toString();
+    }
+
+    public String getPlaceCount() {
+        StringBuilder result = new StringBuilder();
+        int[] typeCount = new int[Place.Type.values().length];
+        for(Place[] placeLayer: places) {
+            for(Place place: placeLayer) {
+                typeCount[place.getType().ordinal()]++;
+            }
+        }
+        for(Place.Type type: Place.Type.values()) {
+            result.append(String.format("\n: %d", typeCount[type.ordinal()]));
+        }
         return result.toString();
     }
 

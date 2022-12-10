@@ -4,7 +4,7 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.geometry.Insets?>
 
-<BorderPane fx:controller="org.dionthorn.isekairpg.controllers.TemplateController" xmlns:fx="http://javafx.com/fxml">
+<BorderPane fx:controller="org.dionthorn.isekairpg.controllers._TemplateController" xmlns:fx="http://javafx.com/fxml">
     <top>
         <HBox fx:id="topBar" style="-fx-background-color: #336699; -fx-font: 20 Consolas;" minHeight="32">
             <padding><Insets top="10" right="10" bottom="10" left="10"/></padding>

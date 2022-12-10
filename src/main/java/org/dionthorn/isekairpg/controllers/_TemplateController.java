@@ -5,7 +5,7 @@ import javafx.fxml.FXML;
 /**
  * Not intended for use just a template of a controller
  */
-public class TemplateController extends AbstractScreenController {
+public class _TemplateController extends AbstractScreenController {
 
     @FXML
     public void initialize() {

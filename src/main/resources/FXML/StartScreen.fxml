@@ -19,8 +19,8 @@
             <padding><Insets top="10" right="10" bottom="10" left="10"/></padding>
             <VBox alignment="CENTER" spacing="10">
                 <padding><Insets top="10" right="10" bottom="10" left="10"/></padding>
-                <Button fx:id="newGameBtn" text="New Game" onAction="#onNewGame" alignment="CENTER"/>
-                <Button fx:id="exitGameBtn" text="Exit Game" onAction="#onExitGame" alignment="CENTER"/>
+                <Button text="New Game" onAction="#onNewGame" alignment="CENTER"/>
+                <Button text="Exit Game" onAction="#onExitGame" alignment="CENTER"/>
             </VBox>
         </GridPane>
     </center>

@@ -62,8 +62,18 @@ public abstract class AbstractCharacter {
         BANDIT, MAGE, SAMURAI, DAIMYO
     }
 
+    private AbstractCharacter() {
+        characterCount++;
+        this.alive = true;
+        this.birthDay = new Dice(GameState.DAYS_PER_MONTH).roll(); // random birthday between 1-30
+        this.birthMonth = new Dice(GameState.MONTHS_PER_YEAR).roll(); // random birth month between 1-12
+        this.firstName = Names.getName();
+        this.lastName = Names.getName();
+        this.attributes = new Attributes();
+    }
+
     /**
-     * A Character is a living being in the World.
+     * A Character is a being in the World.
      * <p>
      * A living Character has 1 or more hit points. A dead one has 0.
      * Each Character has a maxAge randomly assigned at birth 50-99, they will die when reaching that age.
@@ -91,25 +101,12 @@ public abstract class AbstractCharacter {
      * @param currentPlace Place representing the initial location of the character, this is also considered their home
      */
     public AbstractCharacter(Dice hitDie, Place currentPlace) {
-        characterCount++;
-        this.alive = true;
-        this.birthDay = new Dice(GameState.DAYS_PER_MONTH).roll(); // random birthday between 1-30
-        this.birthMonth = new Dice(GameState.MONTHS_PER_YEAR).roll(); // random birth month between 1-12
+        this();
+        // place the character and set home
         this.home = currentPlace;
         this.currentPlace = currentPlace;
-        this.firstName = Names.getName();
-        this.lastName = Names.getName();
-
-        this.attributes = new Attributes();
-
-        // level 1 hit points = hitDie + constitution modifier
         this.hitDie = hitDie;
-        int startingHP = (hitDie.getFaces() * hitDie.getAmount()) + attributes.getAttributeModifier(Attribute.CONSTITUTION);
-        if(startingHP < 1) {
-            startingHP = 1;
-        }
-        this.maxHitPoints = startingHP;
-        this.hitPoints = maxHitPoints;
+        setStartingHP();
         // processing higher levels should be done in implementing objects
     }
 
@@ -119,23 +116,9 @@ public abstract class AbstractCharacter {
      * @param hitDie Dice representing the die to roll to increase HP per level
      */
     public AbstractCharacter(Dice hitDie) {
-        characterCount++;
-        this.alive = true;
-        this.birthDay = new Dice(GameState.DAYS_PER_MONTH).roll(); // random birthday between 1-30
-        this.birthMonth = new Dice(GameState.MONTHS_PER_YEAR).roll(); // random birth month between 1-12
-        this.firstName = Names.getName();
-        this.lastName = Names.getName();
-
-        this.attributes = new Attributes();
-
-        // level 1 hit points = hitDie + constitution modifier
+        this();
         this.hitDie = hitDie;
-        int startingHP = (hitDie.getFaces() * hitDie.getAmount()) + attributes.getAttributeModifier(Attribute.CONSTITUTION);
-        if(startingHP < 1) {
-            startingHP = 1;
-        }
-        this.maxHitPoints = startingHP;
-        this.hitPoints = maxHitPoints;
+        setStartingHP();
         // processing higher levels should be done in implementing objects
     }
 
@@ -157,11 +140,11 @@ public abstract class AbstractCharacter {
 
     public Dice getHitDie() { return hitDie; }
 
-    public int getMaxHitPoints() { return maxHitPoints; }
+    public int getMaxHP() { return maxHitPoints; }
 
-    public int getHitPoints() { return hitPoints; }
+    public int getHP() { return hitPoints; }
 
-    public int getSoulPoints() { return soulPoints; }
+    public int getSP() { return soulPoints; }
 
     public boolean isAlive() { return alive; }
 
@@ -191,7 +174,7 @@ public abstract class AbstractCharacter {
         return weight;
     }
 
-    public int getMaxCarryWeight() { return 100 + (10 * attributes.getAttributeModifier(Attribute.STRENGTH)); }
+    public int getMaxCarryWeight() { return 100 + (10 * attributes.getModifier(Attribute.STRENGTH)); }
 
     public int getNeededXP() { return (level + 1) * XP_SCALE; }
 
@@ -205,8 +188,8 @@ public abstract class AbstractCharacter {
         result.append("  Birth: ").append(getBirthMonth()).append("/").append(getBirthDay()).append("\n");
         result.append("  Level: ").append(getLevel()).append("\n");
         result.append("     HD: ").append(getHitDie()).append("\n");
-        result.append("     HP: ").append(getHitPoints()).append("/").append(getMaxHitPoints()).append("\n");
-        result.append("     SP: ").append(getSoulPoints()).append("\n");
+        result.append("     HP: ").append(getHP()).append("/").append(getMaxHP()).append("\n");
+        result.append("     SP: ").append(getSP()).append("\n");
         result.append("\n").append(attributes).append("\n");
         if(equippedWeapon != null) {
             result.append(" Weapon: ").append(equippedWeapon.getName()).append("\n");
@@ -224,15 +207,38 @@ public abstract class AbstractCharacter {
 
     public void setHome(Place newHome) { home = newHome; }
 
+    // logical setters
+
+    public void setHP(int newHP) {
+        hitPoints = newHP;
+        if(hitPoints <= 0) {
+            alive = false; // kill the character if hp <= 0
+        } else if(hitPoints > maxHitPoints) {
+            hitPoints = maxHitPoints; // HP cannot exceed maxHP
+        }
+    }
+
     // static getter
 
     public static int getCharacterCount() { return characterCount; }
+
+    // methods
+
+    private void setStartingHP() {
+        // level 1 hit points = hitDie + constitution modifier
+        int startingHP = (hitDie.getFaces() * hitDie.getAmount()) + attributes.getModifier(Attribute.CONSTITUTION);
+        if(startingHP < 1) {
+            startingHP = 1;
+        }
+        this.maxHitPoints = startingHP;
+        this.hitPoints = maxHitPoints;
+    }
 
     /**
      * All child classes use super.tick() to advance age of the character and die at maxAge
      */
     public void tick() {
-        // child classes should overwrite and call super
+        // child classes should override and call super
         GameState gameState = Engine.getGameState();
         if(gameState.getCurrentMonth() == birthMonth) {
             if(gameState.getCurrentDay() == birthDay) {

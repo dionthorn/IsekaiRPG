@@ -12,7 +12,7 @@ public final class Foods {
         // private disallows instantiation, this is a static utility class
     }
 
-    public Food get(Foods.Type type) {
+    public static Food get(Foods.Type type) {
         Food toReturn = null;
         String name = "Test";
         String description = "Test";

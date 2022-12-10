@@ -20,20 +20,15 @@ public class CharacterCreationScreenController extends AbstractScreenController 
         for(World.Size worldSize: World.Size.values()) {
             worldSizeBox.getItems().add(worldSize.name());
         }
-        worldSizeBox.getSelectionModel().select(2);
+        worldSizeBox.getSelectionModel().select(2); // Medium world size default
         player = new Player(Dice.d8);
         update();
     }
 
     @FXML
     public void onStartBtn() {
-        String worldSizeSelection = worldSizeBox.getSelectionModel().getSelectedItem();
-        World.Size worldSizeChoice = World.Size.SMALL; // default small world
-        for(World.Size worldSize: World.Size.values()) {
-            if(worldSizeSelection.equals(worldSize.name())) {
-                worldSizeChoice = worldSize;
-            }
-        }
+        int worldSizeSelection = worldSizeBox.getSelectionModel().getSelectedIndex();
+        World.Size worldSizeChoice = World.Size.values()[worldSizeSelection];
         Engine.getGameState().createWorld(worldSizeChoice, player);
         Engine.loadFXML("GameScreen.fxml");
         // From here we go to GameScreenController
@@ -46,7 +41,7 @@ public class CharacterCreationScreenController extends AbstractScreenController 
     }
 
     private void update() {
-        bottomConsole.setText("Roll you character, and choose a world size!");
+        bottomConsole.setText("Roll your character, and choose a world size!");
         bottomConsole.appendText("\n\nLarge world size may take a few seconds to load.");
         bottomConsole.appendText("\n~8 million places and ~40,000 characters");
         playerSheet.setText(player.getCharacterSheet());
