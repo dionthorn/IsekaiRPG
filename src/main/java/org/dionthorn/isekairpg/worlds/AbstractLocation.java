@@ -33,18 +33,15 @@ public class AbstractLocation {
         StringBuilder result = new StringBuilder();
         if(this instanceof Area) {
             for(Place.Type type: Place.Type.values()) {
-                String mapLetter = type.name().substring(0,1);
-                result.append("\n  ").append(mapLetter).append(" ").append(type.name().toLowerCase(Locale.ROOT));
+                result.append("\n").append(type.name().toLowerCase(Locale.ROOT));
             }
         } else if(this instanceof Region) {
             for(Area.Setting setting: Area.Setting.values()) {
-                String mapLetter = setting.name().substring(0,1);
-                result.append("\n  ").append(mapLetter).append(" ").append(setting.name().toLowerCase(Locale.ROOT));
+                result.append("\n").append(setting.name().toLowerCase(Locale.ROOT));
             }
         } else if(this instanceof World) {
             for(Region.Biome biome: Region.Biome.values()) {
-                String mapLetter = biome.name().substring(0,1);
-                result.append("\n  ").append(mapLetter).append(" ").append(biome.name().toLowerCase(Locale.ROOT));
+                result.append("\n").append(biome.name().toLowerCase(Locale.ROOT));
             }
         }
         return result.toString();

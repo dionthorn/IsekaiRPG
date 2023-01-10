@@ -1,7 +1,13 @@
 package org.dionthorn.isekairpg.worlds;
 
+import javafx.scene.canvas.Canvas;
+import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.image.Image;
+import javafx.scene.paint.Color;
+import org.dionthorn.isekairpg.graphics.TileSet;
 import org.dionthorn.isekairpg.utilities.Dice;
-import java.util.Locale;
+
+import java.util.ArrayList;
 
 /**
  * The Area class contains references to all it's associated Place objects as well as a Setting type
@@ -19,12 +25,12 @@ public class Area extends AbstractLocation {
      */
     // You are at [placeName] a [Place.Type] in [areaName] a [Area.Setting] of [regionName] a [Region.Biome] region
     public enum Setting {
-        WILDS(10),
-        SAFEZONE(10),
-        DUNGEON(5),
+        WILDS(5),
+        SAFEZONE(5),
+        DUNGEON(4),
         HAMLET(4),
-        VILLAGE(6),
-        TOWN(8),
+        VILLAGE(5),
+        TOWN(6),
         CASTLE(4);
 
         private final int SIZE;
@@ -33,6 +39,8 @@ public class Area extends AbstractLocation {
 
         public int getSize() { return SIZE; }
     }
+
+    public static final Image[] SETTINGS_TILES = new TileSet("Settings.png").getTiles();
 
     /**
      * Areas have Places, the Setting determines Place types generated
@@ -82,6 +90,25 @@ public class Area extends AbstractLocation {
                 }
             }
         }
+        if(setting != Setting.WILDS && setting != Setting.SAFEZONE &&
+                setting != Setting.CASTLE && setting != Setting.DUNGEON) {
+            addGraveyard();
+        }
+    }
+
+    private void addGraveyard() {
+        // find a free outdoors space to turn into a graveyard every area should have 1 graveyard
+        // except wild, safe, castle, dungeon
+        ArrayList<Place> outdoorPlaces = new ArrayList<>();
+        for(Place[] placeLayer: places) {
+            for(Place place: placeLayer) {
+                if(place.getType() == Place.Type.OUTDOORS) {
+                    outdoorPlaces.add(place);
+                }
+            }
+        }
+        Dice randomOutdoor = new Dice(1, outdoorPlaces.size(), -1);
+        outdoorPlaces.get(randomOutdoor.roll()).setType(Place.Type.GRAVEYARD);
     }
 
     /**
@@ -100,7 +127,7 @@ public class Area extends AbstractLocation {
             } else if(typeRoll == 2) {
                 places[yPlace][xPlace] = new Place(this, Place.Type.FISHERY, xPlace, yPlace);
             } else if(typeRoll == 3) {
-                places[yPlace][xPlace] = new Place(this, Place.Type.AGRICULTURE, xPlace, yPlace);
+                places[yPlace][xPlace] = new Place(this, Place.Type.FARM, xPlace, yPlace);
             } else if(typeRoll == 4) {
                 places[yPlace][xPlace] = new Place(this, Place.Type.TRADER, xPlace, yPlace);
             } else if(typeRoll == 5) {
@@ -110,7 +137,7 @@ public class Area extends AbstractLocation {
             } else if(typeRoll == 7) {
                 places[yPlace][xPlace] = new Place(this, Place.Type.WOODLAND, xPlace, yPlace);
             } else if(typeRoll == 8) {
-                places[yPlace][xPlace] = new Place(this, Place.Type.LODGING, xPlace, yPlace);
+                places[yPlace][xPlace] = new Place(this, Place.Type.INN, xPlace, yPlace);
             }
         } else {
             // 50%
@@ -140,7 +167,7 @@ public class Area extends AbstractLocation {
             } else if(typeRoll == 5) {
                 places[yPlace][xPlace] = new Place(this, Place.Type.BLACKSMITH, xPlace, yPlace);
             } else if(typeRoll == 6) {
-                places[yPlace][xPlace] = new Place(this, Place.Type.LODGING, xPlace, yPlace);
+                places[yPlace][xPlace] = new Place(this, Place.Type.INN, xPlace, yPlace);
             }
         } else {
             // 50%
@@ -163,11 +190,11 @@ public class Area extends AbstractLocation {
             } else if(typeRoll == 2) {
                 places[yPlace][xPlace] = new Place(this, Place.Type.FISHERY, xPlace, yPlace);
             } else if(typeRoll == 3) {
-                places[yPlace][xPlace] = new Place(this, Place.Type.AGRICULTURE, xPlace, yPlace);
+                places[yPlace][xPlace] = new Place(this, Place.Type.FARM, xPlace, yPlace);
             } else if(typeRoll == 4) {
                 places[yPlace][xPlace] = new Place(this, Place.Type.TRADER, xPlace, yPlace);
             } else if(typeRoll == 5) {
-                places[yPlace][xPlace] = new Place(this, Place.Type.LODGING, xPlace, yPlace);
+                places[yPlace][xPlace] = new Place(this, Place.Type.INN, xPlace, yPlace);
             } else if(typeRoll == 6) {
                 places[yPlace][xPlace] = new Place(this, Place.Type.WOODLAND, xPlace, yPlace);
             }
@@ -190,7 +217,7 @@ public class Area extends AbstractLocation {
             places[yPlace][xPlace] = new Place(this, Place.Type.RESERVE, xPlace, yPlace);
         } else if(roll > 12) {
             // 20% (13-16)
-            places[yPlace][xPlace] = new Place(this, Place.Type.LODGING, xPlace, yPlace);
+            places[yPlace][xPlace] = new Place(this, Place.Type.INN, xPlace, yPlace);
         } else {
             // 60% (1-12)
             places[yPlace][xPlace] = new Place(this, Place.Type.OUTDOORS, xPlace, yPlace);
@@ -210,7 +237,7 @@ public class Area extends AbstractLocation {
             places[yPlace][xPlace] = new Place(this, Place.Type.FISHERY, xPlace, yPlace);
         } else if(roll > 12) {
             // 20% (13-16)
-            places[yPlace][xPlace] = new Place(this, Place.Type.LODGING, xPlace, yPlace);
+            places[yPlace][xPlace] = new Place(this, Place.Type.INN, xPlace, yPlace);
         } else {
             // 60% (1-12)
             places[yPlace][xPlace] = new Place(this, Place.Type.OUTDOORS, xPlace, yPlace);
@@ -253,53 +280,51 @@ public class Area extends AbstractLocation {
      */
     public Setting getSetting() { return setting; }
 
-    /**
-     * returns a formatted String for the map of places in the area where x,y is highlighted with []
-     * @param x x place coordinate to highlight
-     * @param y y place coordinate to highlight
-     * @return String formatted as the map of places in the area
-     */
-    public String getPlaceMap(int x, int y) {
-        // we first add the title of the map
-        String highlightedName = getPlace(x, y).getName();
-        StringBuilder result = new StringBuilder(
-                String.format(
-                        "%s of %s %s area map\nHighlighted: %s\n\n",
-                        ((Region) getParent()).getBiome().name().toLowerCase(Locale.ROOT),
-                        getName(),
-                        setting.name().toLowerCase(Locale.ROOT),
-                        highlightedName
-                )
-        );
-        // we draw the 'map' and highlight the x,y provided
-        // as well we count the areas place types
-        for(Place[] placeLayer: places) {
-            result.append("  ");
-            for(Place place: placeLayer) {
-                if(place.getX() == x && place.getY() == y) {
-                    result.append("[").append(place.getType().name(), 0, 1).append("]");
-                } else {
-                    result.append(" ").append(place.getType().name(), 0, 1).append(" ");
-                }
-            }
-            result.append("\n");
-        }
-        // return the formatted result String
-        return result.toString();
-    }
+    public Canvas getPlaceMapCanvas(int placeX, int placeY) {
+        int placeSize = getPlaceSize();
+        Canvas map = new Canvas(placeSize * TileSet.TILE_SIZE, placeSize * TileSet.TILE_SIZE);
+        GraphicsContext gc = map.getGraphicsContext2D();
 
-    public String getPlaceCount() {
-        StringBuilder result = new StringBuilder();
-        int[] typeCount = new int[Place.Type.values().length];
-        for(Place[] placeLayer: places) {
-            for(Place place: placeLayer) {
-                typeCount[place.getType().ordinal()]++;
+        for (int x = 0; x < placeSize; x++) {
+            for (int y = 0; y < placeSize; y++) {
+                Place place = getPlace(x, y);
+                Region region = (Region) getParent();
+                Region.Biome biome = region.getBiome();
+                Area.Setting setting = region.getArea(getX(), getY()).getSetting();
+                Place.Type type = place.getType();
+
+                Image[] typesBiomeTiles = null;
+                if(biome == Region.Biome.PLAINS) {
+                    typesBiomeTiles = Place.TYPE_TILES_PLAINS;
+                } else if(biome == Region.Biome.HILLS) {
+                    typesBiomeTiles = Place.TYPE_TILES_HILLS;
+                } else if(biome == Region.Biome.MOUNTAIN) {
+                    typesBiomeTiles = Place.TYPE_TILES_MOUNTAINS;
+                } else if(biome == Region.Biome.FOREST) {
+                    typesBiomeTiles = Place.TYPE_TILES_FORESTS;
+                } else if(biome == Region.Biome.DESERT) {
+                    typesBiomeTiles = Place.TYPE_TILES_DESERTS;
+                } else if(biome == Region.Biome.TUNDRA) {
+                    typesBiomeTiles = Place.TYPE_TILES_TUNDRAS;
+                }
+                assert typesBiomeTiles != null;
+
+                int tileID = (setting.ordinal() * Place.Type.values().length) + type.ordinal();
+
+                gc.drawImage(
+                        typesBiomeTiles[tileID],
+                        TileSet.TILE_SIZE * x,
+                        TileSet.TILE_SIZE * y
+                );
             }
         }
-        for(Place.Type type: Place.Type.values()) {
-            result.append(String.format("\n: %d", typeCount[type.ordinal()]));
-        }
-        return result.toString();
+
+        // highlight player area with red rect
+        gc.setStroke(Color.RED);
+        gc.setLineWidth(2);
+        gc.strokeRect(TileSet.TILE_SIZE * placeX, TileSet.TILE_SIZE * placeY, TileSet.TILE_SIZE, TileSet.TILE_SIZE);
+
+        return map;
     }
 
 }

@@ -1,8 +1,12 @@
 package org.dionthorn.isekairpg.worlds;
 
+import javafx.scene.canvas.Canvas;
+import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.image.Image;
+import javafx.scene.paint.Color;
 import org.dionthorn.isekairpg.Engine;
+import org.dionthorn.isekairpg.graphics.TileSet;
 import org.dionthorn.isekairpg.utilities.Dice;
-import java.util.Locale;
 
 /**
  * The Region class contains Areas and has an assigned Biome which determines what type of Areas are created
@@ -24,6 +28,9 @@ public class Region extends AbstractLocation {
      */
     // You are at [placeName] a [Place.Type] in [areaName] a [Area.Setting] of [regionName] a [Region.Biome] region
     public enum Biome { PLAINS, HILLS, MOUNTAIN, FOREST, DESERT, TUNDRA }
+
+    // Image[] index with [Biome.ordinal()]
+    public static final Image[] BIOME_TILES = new TileSet("Biomes.png").getTiles();
 
     /**
      * Regions have Areas. The Region Biome determines the Area Settings
@@ -78,8 +85,10 @@ public class Region extends AbstractLocation {
             countDie = new Dice(4);
         }
         int nationCount = countDie.roll();
+        int tries = 0;
         for(int nationSteps=0; nationSteps<nationCount; nationSteps++) {
             boolean validCastleSpot = false;
+            tries = 0;
             while(!validCastleSpot) {
                 int castleX = chanceX.roll() - 1;
                 int castleY = chanceY.roll() - 1;
@@ -90,10 +99,15 @@ public class Region extends AbstractLocation {
                     tameAround(castleX, castleY);
                     validCastleSpot = true;
                 }
+                tries++;
+                if(tries > 10) {
+                    break;
+                }
             }
             int townCount = countDie.roll();
             for(int townSteps=0; townSteps<townCount; townSteps++) {
                 boolean validTownSpot = false;
+                tries = 0;
                 while(!validTownSpot) {
                     int townX = chanceX.roll() - 1;
                     int townY = chanceY.roll() - 1;
@@ -104,12 +118,17 @@ public class Region extends AbstractLocation {
                         tameAround(townX, townY);
                         validTownSpot = true;
                     }
+                    tries++;
+                    if(tries > 10) {
+                        break;
+                    }
                 }
             }
             countDie = new Dice(countDie.getFaces() + 1);
             int villageCount = countDie.roll();
             for(int villageSteps=0; villageSteps<villageCount; villageSteps++) {
                 boolean validVillageSpot = false;
+                tries = 0;
                 while(!validVillageSpot) {
                     int villageX = chanceX.roll() - 1;
                     int villageY = chanceY.roll() - 1;
@@ -119,12 +138,17 @@ public class Region extends AbstractLocation {
                         tameAround(villageX, villageY);
                         validVillageSpot = true;
                     }
+                    tries++;
+                    if(tries > 10) {
+                        break;
+                    }
                 }
             }
             countDie = new Dice(countDie.getFaces() + 1);
             int hamletCount = countDie.roll();
             for(int hamletSteps=0; hamletSteps<hamletCount; hamletSteps++) {
                 boolean validHamletSpot = false;
+                tries = 0;
                 while(!validHamletSpot) {
                     int hamletX = chanceX.roll() - 1;
                     int hamletY = chanceY.roll() - 1;
@@ -132,6 +156,10 @@ public class Region extends AbstractLocation {
                             areas[hamletY][hamletX].getSetting() == Area.Setting.SAFEZONE) {
                         areas[hamletY][hamletX] = new Area(this, Area.Setting.HAMLET, hamletX, hamletY);
                         validHamletSpot = true;
+                    }
+                    tries++;
+                    if(tries > 10) {
+                        break;
                     }
                 }
             }
@@ -156,6 +184,7 @@ public class Region extends AbstractLocation {
 
         // populate with 0-1 towns
         int townCount = countDie.roll() - 1;
+        int tries = 0;
         for(int townSteps=0; townSteps<townCount; townSteps++) {
             boolean validTownSpot = false;
             while(!validTownSpot) {
@@ -167,6 +196,10 @@ public class Region extends AbstractLocation {
                     tameAround(townX, townY);
                     validTownSpot = true;
                 }
+                tries++;
+                if(tries > 10) {
+                    break;
+                }
             }
         }
         // populate with 1-2 villages
@@ -174,6 +207,7 @@ public class Region extends AbstractLocation {
         int villageCount = countDie.roll();
         for(int villageSteps=0; villageSteps<villageCount; villageSteps++) {
             boolean validVillageSpot = false;
+            tries = 0;
             while(!validVillageSpot) {
                 int villageX = chanceX.roll() - 1;
                 int villageY = chanceY.roll() - 1;
@@ -183,6 +217,10 @@ public class Region extends AbstractLocation {
                     tameAround(villageX, villageY);
                     validVillageSpot = true;
                 }
+                tries++;
+                if(tries > 10) {
+                    break;
+                }
             }
         }
         //populate with 1-2 hamlets
@@ -190,6 +228,7 @@ public class Region extends AbstractLocation {
         int hamletCount = countDie.roll();
         for(int hamletSteps=0; hamletSteps<hamletCount; hamletSteps++) {
             boolean validHamletSpot = false;
+            tries = 0;
             while(!validHamletSpot) {
                 int hamletX = chanceX.roll() - 1;
                 int hamletY = chanceY.roll() - 1;
@@ -197,6 +236,10 @@ public class Region extends AbstractLocation {
                         areas[hamletY][hamletX].getSetting() == Area.Setting.SAFEZONE) {
                     areas[hamletY][hamletX] = new Area(this, Area.Setting.HAMLET, hamletX, hamletY);
                     validHamletSpot = true;
+                }
+                tries++;
+                if(tries > 10) {
+                    break;
                 }
             }
         }
@@ -220,6 +263,7 @@ public class Region extends AbstractLocation {
 
         // populate with 0-1 villages
         int villageCount = countDie.roll() - 1;
+        int tries = 0;
         for(int villageSteps=0; villageSteps<villageCount; villageSteps++) {
             boolean validVillageSpot = false;
             while(!validVillageSpot) {
@@ -231,6 +275,10 @@ public class Region extends AbstractLocation {
                     tameAround(villageX, villageY);
                     validVillageSpot = true;
                 }
+                tries++;
+                if(tries > 10) {
+                    break;
+                }
             }
         }
         //populate with 0-2 hamlets
@@ -238,6 +286,7 @@ public class Region extends AbstractLocation {
         int hamletCount = countDie.roll() - 1;
         for(int hamletSteps=0; hamletSteps<hamletCount; hamletSteps++) {
             boolean validHamletSpot = false;
+            tries = 0;
             while(!validHamletSpot) {
                 int hamletX = chanceX.roll() - 1;
                 int hamletY = chanceY.roll() - 1;
@@ -245,6 +294,10 @@ public class Region extends AbstractLocation {
                         areas[hamletY][hamletX].getSetting() == Area.Setting.SAFEZONE) {
                     areas[hamletY][hamletX] = new Area(this, Area.Setting.HAMLET, hamletX, hamletY);
                     validHamletSpot = true;
+                }
+                tries++;
+                if(tries > 10) {
+                    break;
                 }
             }
         }
@@ -258,6 +311,7 @@ public class Region extends AbstractLocation {
     private void populateDungeon(Dice chanceX, Dice chanceY) {
         // populate with 1-4 dungeons!
         int dungeonCount = Dice.d4.roll();
+        int tries = 0;
         for(int dungeonSteps=0; dungeonSteps<dungeonCount; dungeonSteps++) {
             boolean validDungeonSpot = false;
             while(!validDungeonSpot) {
@@ -266,6 +320,10 @@ public class Region extends AbstractLocation {
                 if(areas[dungeonY][dungeonX].getSetting() == Area.Setting.WILDS) {
                     areas[dungeonY][dungeonX] = new Area(this, Area.Setting.DUNGEON, dungeonX, dungeonY);
                     validDungeonSpot = true;
+                }
+                tries++;
+                if(tries > 10) {
+                    break;
                 }
             }
         }
@@ -291,50 +349,6 @@ public class Region extends AbstractLocation {
     // Logical Getters
 
     /**
-     * Will return a String representation of the Areas contained in this Region
-     * @param x int representing the x coordinate of the Area to highlight in the map
-     * @param y int representing the y coordinate of the Area to highlight in the map
-     * @return String representing the map of Areas contained in this Region
-     */
-    public String getAreaMap(int x, int y) {
-        String highlightedName = getArea(x, y).getName();
-        StringBuilder result = new StringBuilder(
-                String.format(
-                        "Region of %s %s map\nHighlighted: %s\n\n",
-                        getName(),
-                        biome.name().toLowerCase(Locale.ROOT),
-                        highlightedName
-                )
-        );
-        for(Area[] areaLayer: areas) {
-            result.append("  ");
-            for(Area area: areaLayer) {
-                if(area.getX() == x && area.getY() == y) {
-                    result.append("[").append(area.getSetting().name(), 0, 1).append("]");
-                } else {
-                    result.append(" ").append(area.getSetting().name(), 0, 1).append(" ");
-                }
-            }
-            result.append("\n");
-        }
-        return result.toString();
-    }
-
-    public String getAreaCount() {
-        StringBuilder result = new StringBuilder();
-        int[] settingCount = new int[Area.Setting.values().length];
-        for(Area[] areaLayer: areas) {
-            for(Area area: areaLayer) {
-                settingCount[area.getSetting().ordinal()]++;
-            }
-        }
-        for(Area.Setting setting: Area.Setting.values()) {
-            result.append(String.format("\n: %d", settingCount[setting.ordinal()]));
-        }
-        return result.toString();
-    }
-
-    /**
      * Will return the Area at the provided x,y coordinate in this Region
      * @param x int representing the target x coordinate
      * @param y int representing the target y coordinate
@@ -349,6 +363,30 @@ public class Region extends AbstractLocation {
             // if x,y doesn't exist in this area will return null
         }
         return toGet;
+    }
+
+    public Canvas getAreaMapCanvas(int areaX, int areaY) {
+        Canvas map = new Canvas(areaSize * TileSet.TILE_SIZE, areaSize * TileSet.TILE_SIZE);
+        GraphicsContext gc = map.getGraphicsContext2D();
+
+        for (int x = 0; x < areaSize; x++) {
+            for (int y = 0; y < areaSize; y++) {
+                Biome biome = getBiome();
+                Area.Setting areaSetting = getArea(x, y).getSetting();
+                int tileID = (biome.ordinal() * Area.Setting.values().length) + areaSetting.ordinal();
+                gc.drawImage(
+                        Area.SETTINGS_TILES[tileID],
+                        TileSet.TILE_SIZE * x,
+                        TileSet.TILE_SIZE * y
+                );
+            }
+        }
+        // highlight player area with red rect
+        gc.setStroke(Color.RED);
+        gc.setLineWidth(2);
+        gc.strokeRect(TileSet.TILE_SIZE * areaX, TileSet.TILE_SIZE * areaY, TileSet.TILE_SIZE, TileSet.TILE_SIZE);
+
+        return map;
     }
 
     // pure getters

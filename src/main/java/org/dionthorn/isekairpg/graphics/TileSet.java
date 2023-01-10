@@ -5,23 +5,22 @@ import javafx.scene.image.PixelReader;
 import javafx.scene.image.PixelWriter;
 import javafx.scene.image.WritableImage;
 import javafx.scene.paint.Color;
+import org.dionthorn.isekairpg.App;
+
+import java.net.URI;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 
 /**
  * In future update this will be used to draw maps with actual graphics
  */
 public class TileSet {
 
-    private static final int TILE_SIZE = 16; // 16*16 tiles
+    public static final URI GAME_ART_PATH = URI.create(String.valueOf(App.class.getResource("/Art/")));
+    public static final int TILE_SIZE = 16; // 16*16 tiles
     private static final ArrayList<TileSet> tileSetCache = new ArrayList<>();
     private final String tileSetPath; // path to tile set original
     private final Image tileSetSrc; // tile set original image
-    private Image[] tiles;
-    private Image blank;
-    private int totalTiles;
-    private final ArrayList<Integer> removedTileIDList = new ArrayList<>();
+    private final Image[] tiles;
 
     public TileSet(String path) {
         boolean sameFound = false;
@@ -37,46 +36,16 @@ public class TileSet {
         if(sameFound) {
             tileSetSrc = tileSetCache.get(sameIndex).getTileSetSrc();
             tiles = tileSetCache.get(sameIndex).getTiles();
-            blank = tileSetCache.get(sameIndex).getBlank();
-            Integer[] boxedArray = Arrays.stream(
-                    tileSetCache.get(sameIndex).getRemovedTileID()
-            ).boxed().toArray(Integer[]::new);
-            Collections.addAll(removedTileIDList, boxedArray);
-            totalTiles = tileSetCache.get(sameIndex).getTotalTiles();
         } else {
-            tileSetSrc = new Image("/Art/" + tileSetPath);
+            tileSetSrc = new Image(GAME_ART_PATH + tileSetPath);
             tiles = makeTiles(tileSetSrc);
             if (tiles.length == 0) {
                 System.err.println("NO TILES DETECTED");
-            } else {
-                blank = tiles[tiles.length - 1];
-                for (int step = 0; step < tiles.length; step++) {
-                    if (areImagesSame(tiles[step], blank)) {
-                        removedTileIDList.add(step);
-                    }
-                }
-                tiles = removeSameElements(tiles, blank);
-                totalTiles = tiles.length;
             }
             TileSet.tileSetCache.add(this);
             tileSetCache.trimToSize();
         }
     }
-
-    // logical getters
-
-    public int[] getRemovedTileID() {
-        int[] toReturn = new int[removedTileIDList.size()];
-        int step = 0;
-        for(Integer i: removedTileIDList) {
-            int ID = i;
-            toReturn[step] = ID;
-            step++;
-        }
-        return toReturn;
-    }
-
-    public Image getTile(int tileID) { return tiles[tileID]; }
 
     // pure getters
 
@@ -86,16 +55,12 @@ public class TileSet {
 
     public Image[] getTiles() { return tiles; }
 
-    public int getTotalTiles() { return totalTiles; }
-
-    public Image getBlank() { return blank; }
-
     // static methods
 
     private static Image[] makeTiles(Image tileSet) {
         int srcW = (int) tileSet.getWidth();
         int srcH = (int) tileSet.getHeight();
-        int maxTiles = ((srcW / TILE_SIZE) * (srcH/ TILE_SIZE));
+        int maxTiles = ((srcW / TILE_SIZE) * (srcH / TILE_SIZE));
         int maxTilesWidth = (srcW / TILE_SIZE);
         Image[] toReturn = new Image[maxTiles];
         PixelReader pr = tileSet.getPixelReader();
@@ -123,30 +88,6 @@ public class TileSet {
             wCount++;
         }
         return toReturn;
-    }
-
-    private static boolean areImagesSame(Image imgA, Image imgB) {
-        if(imgA.getWidth() == imgB.getWidth() && imgA.getHeight() == imgB.getHeight()) {
-            for(int x = 0; x<(int) imgA.getWidth(); x++) {
-                for(int y = 0; y<(int) imgA.getHeight(); y++) {
-                    if(!imgA.getPixelReader().getColor(x, y).equals(imgB.getPixelReader().getColor(x, y))) return false;
-                }
-            }
-        }
-        return true;
-    }
-
-    private static Image[] removeSameElements(Image[] original, Image toRemove) {
-        ArrayList<Image> toReturn = new ArrayList<>();
-        for(Image i: original) {
-            if (!areImagesSame(i, toRemove)) {
-                toReturn.add(i);
-            }
-        }
-        toReturn.add(toRemove);
-        toReturn.trimToSize();
-        Image[] newArray = new Image[toReturn.size()];
-        return toReturn.toArray(newArray);
     }
 
 }

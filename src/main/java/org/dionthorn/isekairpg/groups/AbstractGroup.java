@@ -2,7 +2,7 @@ package org.dionthorn.isekairpg.groups;
 
 public abstract class AbstractGroup {
 
-    protected String name;
+    private final String name;
 
     /**
      * All groups have a name

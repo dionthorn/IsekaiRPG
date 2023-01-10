@@ -6,6 +6,7 @@
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.text.Text?>
 
+<?import javafx.scene.control.ScrollPane?>
 <BorderPane fx:controller="org.dionthorn.isekairpg.controllers.GameScreenController" xmlns:fx="http://javafx.com/fxml">
     <top>
         <HBox fx:id="topBar" style="-fx-background-color: #336699; -fx-font: 20 Consolas;" minHeight="32">
@@ -16,12 +17,12 @@
         </HBox>
     </top>
     <center>
-        <GridPane fx:id="centerGridPane" style="-fx-font: 12 Consolas;" minWidth="32" alignment="TOP_CENTER">
+        <GridPane fx:id="centerGridPane" style="-fx-font: 12 Consolas;" minWidth="32">
             <padding><Insets top="10" right="10" bottom="10" left="10"/></padding>
         </GridPane>
     </center>
     <left>
-        <VBox fx:id="leftBar" style="-fx-background-color: #336699; -fx-font: 12 Consolas;" minWidth="160" spacing="5" alignment="CENTER_LEFT">
+        <VBox fx:id="leftBar" style="-fx-background-color: #336699; -fx-font: 12 Consolas;" minWidth="160" spacing="5">
             <padding><Insets top="10" right="10" bottom="10" left="10"/></padding>
             <Text fx:id="playerSheet"/>
             <Region VBox.vgrow="ALWAYS"/>
@@ -43,12 +44,17 @@
             <Button text="Map Areas" onAction="#onMapAreas"/>
             <Button text="Map Places" onAction="#onMapPlaces"/>
             <Region VBox.vgrow="ALWAYS"/>
+            <Button text="Attack" onAction="#onAttack"/>
+            <Button text="Shop" onAction="#onShop"/>
+            <Button text="Talk" onAction="#onTalk"/>
+            <Button text="Relations" onAction="#onRelations"/>
             <Button text="Sleep" onAction="#onSleep"/>
-            <Button text="Look" onAction="#onLook"/>
             <Button text="Wait" onAction="#onWait"/>
         </VBox>
     </right>
     <bottom>
-        <TextArea fx:id="bottomConsole" prefWidth="1024" prefHeight="192" style="-fx-font: 12 Consolas;"/>
+        <ScrollPane>
+            <TextArea fx:id="bottomConsole" prefWidth="1024" style="-fx-font: 12 Consolas;"/>
+        </ScrollPane>
     </bottom>
 </BorderPane>

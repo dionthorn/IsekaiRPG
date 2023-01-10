@@ -1,5 +1,6 @@
 package org.dionthorn.isekairpg;
 
+import javafx.scene.control.Alert;
 import org.dionthorn.isekairpg.characters.AbstractCharacter;
 import org.dionthorn.isekairpg.characters.NPC;
 import org.dionthorn.isekairpg.characters.Player;
@@ -9,6 +10,7 @@ import org.dionthorn.isekairpg.worlds.Area;
 import org.dionthorn.isekairpg.worlds.Place;
 import org.dionthorn.isekairpg.worlds.Region;
 import org.dionthorn.isekairpg.worlds.World;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -19,6 +21,8 @@ import java.util.Arrays;
  */
 public final class GameState {
 
+    // actionStrings from when things happen to the player or player does things
+    public static ArrayList<String> actionStrings = new ArrayList<>();
     // time tracking variables
     public static final int DAYS_PER_MONTH = 30; // 360 days a year
     public static final int MONTHS_PER_YEAR = 12;
@@ -29,6 +33,7 @@ public final class GameState {
     // Game variables
     private World world;
     private Player player;
+    private NPC battleNPC; // target for player NPC battle used to save reference for BattleScreenController
     // final Area reference lists, clear the list to reuse
     private final ArrayList<Area> communities = new ArrayList<>(); // hamlet, village, town
     private final ArrayList<Area> dungeons = new ArrayList<>();    // dungeon
@@ -42,6 +47,7 @@ public final class GameState {
     private final ArrayList<Place> hunters = new ArrayList<>();     // hunting places
     private final ArrayList<Place> miners = new ArrayList<>();      // mining places
     private final ArrayList<Place> shops = new ArrayList<>();       // shopping places
+    private final ArrayList<Place> crypts = new ArrayList<>();      // graveyard places
     // final NPC reference lists, clear the list to reuse
     private final ArrayList<NPC> allNPCs = new ArrayList<>();    // every NPC in the world
     private final ArrayList<Nation> nations = new ArrayList<>(); // every Nation in the world
@@ -73,8 +79,26 @@ public final class GameState {
      */
     public void createWorld(World.Size worldSize, Player player) {
         world = new World(worldSize);
-        world.populate();
+        world.create();
         this.player = player;
+
+        // clear lists
+        allNPCs.clear();
+        communities.clear();
+        dungeons.clear();
+        castles.clear();
+        homes.clear();
+        lumberjacks.clear();
+        farmers.clear();
+        fishers.clear();
+        miners.clear();
+        blacksmiths.clear();
+        hunters.clear();
+        shops.clear();
+        crypts.clear();
+        nations.clear();
+        AbstractCharacter.resetCharacterCount();
+        System.gc();
 
         // put useful places into master reference lists
         for(Region[] regionLayer: world.getRegions()) {
@@ -92,9 +116,9 @@ public final class GameState {
                         }
                         for(Place[] placeLayer: area.getPlaces()) {
                             for(Place place: placeLayer) {
-                                if(place.getType() == Place.Type.LODGING) {
+                                if(place.getType() == Place.Type.INN) {
                                     homes.add(place);
-                                } else if(place.getType() == Place.Type.AGRICULTURE) {
+                                } else if(place.getType() == Place.Type.FARM) {
                                     farmers.add(place);
                                 } else if(place.getType() == Place.Type.FISHERY) {
                                     fishers.add(place);
@@ -108,6 +132,8 @@ public final class GameState {
                                     blacksmiths.add(place);
                                 } else if(place.getType() == Place.Type.RESERVE) {
                                     hunters.add(place);
+                                } else if(place.getType() == Place.Type.GRAVEYARD) {
+                                    crypts.add(place);
                                 }
                             }
                         }
@@ -129,6 +155,7 @@ public final class GameState {
         System.out.println("    Hunters Generated: " + hunters.size());
         System.out.println("Blacksmiths Generated: " + blacksmiths.size());
         System.out.println("    Traders Generated: " + shops.size());
+        System.out.println("     Crypts Generated: " + crypts.size());
         System.out.println("\nRegions Count: " + world.getRegionSize() * world.getRegionSize());
         int areasCount = 0;
         for(Region[] regionLayer: world.getRegions()) {
@@ -149,13 +176,13 @@ public final class GameState {
         }
         System.out.println("Places  Count: " + placesCount);
 
-        // Place the Player, Nations, Dungeons, and NPCs
         placePlayer();
         placeNations();
         placeDungeons();
         placeNPCs();
 
-        System.out.println("Characters Generated: " + AbstractCharacter.getCharacterCount());
+        System.out.println("\nCharacters Generated: " + AbstractCharacter.getCharacterCount());
+        System.out.println("Places per Character: " + (placesCount/AbstractCharacter.getCharacterCount()));
         System.out.println("##### ##### ##### ##### ##### #####");
     }
 
@@ -181,7 +208,7 @@ public final class GameState {
         ArrayList<Place> homes = new ArrayList<>();
         if(locations.size() != 0) {
             for(Place place: locations) {
-                if(place.getType() == Place.Type.LODGING) {
+                if(place.getType() == Place.Type.INN) {
                     homes.add(place);
                 }
             }
@@ -214,7 +241,7 @@ public final class GameState {
             int randX = chanceDie.roll() - 1;
             int randY = chanceDie.roll() - 1;
             kingsRoom = castle.getPlace(randX, randY);
-            kingsRoom.setType(Place.Type.KINGSROOM); // change this room to a KING type
+            kingsRoom.setType(Place.Type.THRONEROOM); // change this room to a KING type
             currentKing = new NPC(Dice.d12, kingsRoom);
             allNPCs.add(currentKing);
 
@@ -225,7 +252,7 @@ public final class GameState {
             // once we place the king we should spawn Knight NPCs in all the other rooms
             for(Place[] placeLayer: castle.getPlaces()) {
                 for(Place place: placeLayer) {
-                    if(place.getType() != Place.Type.KINGSROOM) {
+                    if(place.getType() != Place.Type.THRONEROOM) {
                         NPC knight = new NPC(Dice.d12, place);
                         allNPCs.add(knight);
                         newNation.addCitizen(knight);
@@ -247,9 +274,9 @@ public final class GameState {
         for(Area community: communities) {
             for(Place[] placeLayer: community.getPlaces()) {
                 for(Place place: placeLayer) {
-                    if(place.getType() == Place.Type.LODGING) {
+                    if(place.getType() == Place.Type.INN) {
                         allNPCs.add(new NPC(Dice.d4, place));
-                    } else if(place.getType() == Place.Type.AGRICULTURE) {
+                    } else if(place.getType() == Place.Type.FARM) {
                         allNPCs.add(new NPC(Dice.d8, place));
                     } else if(place.getType() == Place.Type.BLACKSMITH) {
                         allNPCs.add(new NPC(Dice.d10, place));
@@ -263,6 +290,8 @@ public final class GameState {
                         allNPCs.add(new NPC(Dice.d10, place));
                     } else if(place.getType() == Place.Type.TRADER) {
                         allNPCs.add(new NPC(Dice.d4, place));
+                    } else if(place.getType() == Place.Type.GRAVEYARD) {
+                        allNPCs.add(new NPC(Dice.d8, place));
                     }
                 }
             }
@@ -294,10 +323,29 @@ public final class GameState {
         }
         // tick player for aging logic
         player.tick();
-        // perform every NPC tick logic
+        // perform every NPC tick logic we have an alert ready incase it takes longer than 1 second
+        Alert loading = new Alert(Alert.AlertType.INFORMATION);
+        loading.setHeaderText("");
+        loading.setContentText("Processing " + AbstractCharacter.getCharacterCount() + " NPCs");
+        loading.setTitle("Loading.");
+        long startTime = System.nanoTime();
+        long processingTime;
+        long totalTime;
+        int totalSeconds;
         for(NPC npc: allNPCs) {
             npc.tick();
+            processingTime = System.nanoTime();
+            totalTime = processingTime - startTime;
+            totalSeconds = (int) (totalTime / 1_000_000_000);
+            if(totalSeconds >= 1) {
+                loading.show(); // if any individual tick takes 1 second or longer show loading alert
+            }
         }
+        processingTime = System.nanoTime();
+        totalTime = processingTime - startTime;
+        totalSeconds = (int) (totalTime / 1_000_000_000);
+        loading.setTitle("Finished.");
+        loading.setContentText("Finished Processing " + AbstractCharacter.getCharacterCount() + " NPCs took " + totalSeconds + " seconds.");
     }
 
     /**
@@ -367,5 +415,17 @@ public final class GameState {
      * @return int representing the current game hour
      */
     public int getCurrentHour() { return currentHour; }
+
+    /**
+     * Will provide the current Player vs NPC target NPC
+     * @return NPC representing the current Player vs NPC target NPC
+     */
+    public NPC getBattleNPC() { return battleNPC; }
+
+    /**
+     * Set the target NPC for Player vs NPC battles
+     * @param npc representing the target NPC for Player vs NPC battles
+     */
+    public void setBattleNPC(NPC npc) { battleNPC = npc; }
 
 }

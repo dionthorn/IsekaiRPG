@@ -12,12 +12,13 @@ public class Player extends AbstractCharacter {
 
     public Player(Dice hitDie) {
         super(hitDie);
-        this.age = 20; // players start aged 20
+        setAge(20); // players start aged 20
         // players get 31 years guaranteed and die between ages 51-90
-        this.maxAge = new Dice(1,40,30).roll();
-        this.equippedWeapon = Weapons.get(Weapons.Type.BO);
-        this.equippedArmor = Armors.get(Armors.Type.CLOTH);
-        this.inventory.add(Foods.get(Foods.Type.RICE));
+        setMaxAge(new Dice(1,40,30).roll());
+        setEquippedWeapon(Weapons.get(Weapons.Type.BO));
+        setEquippedArmor(Armors.get(Armors.Type.CLOTH));
+        getInventory().add(Foods.get(Foods.Type.RICE));
+        getMoney().add(0, 0, 1, 10); // player starts with 1 silver and 10 copper
     }
 
 }

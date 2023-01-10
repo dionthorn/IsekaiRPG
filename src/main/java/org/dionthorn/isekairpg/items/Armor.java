@@ -2,12 +2,12 @@ package org.dionthorn.isekairpg.items;
 
 public class Armor extends AbstractItem {
 
-    private final int armorClass;
+    private final int armorBonus;
 
-    public Armor(String name, String description, int weight, int armorClass) {
+    public Armor(String name, String description, int weight, int armorBonus) {
         super(name, description, weight);
-        this.armorClass = armorClass;
+        this.armorBonus = armorBonus;
     }
 
-    public int getArmorClass() { return armorClass; }
+    public int getArmorBonus() { return armorBonus; }
 }

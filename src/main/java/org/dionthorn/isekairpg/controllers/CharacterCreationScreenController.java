@@ -1,6 +1,7 @@
 package org.dionthorn.isekairpg.controllers;
 
 import javafx.fxml.FXML;
+import javafx.scene.control.Alert;
 import javafx.scene.control.ComboBox;
 import javafx.scene.text.Text;
 import org.dionthorn.isekairpg.Engine;
@@ -29,7 +30,19 @@ public class CharacterCreationScreenController extends AbstractScreenController 
     public void onStartBtn() {
         int worldSizeSelection = worldSizeBox.getSelectionModel().getSelectedIndex();
         World.Size worldSizeChoice = World.Size.values()[worldSizeSelection];
+
+        Alert loading = new Alert(Alert.AlertType.INFORMATION);
+        if(worldSizeChoice == World.Size.LARGE || worldSizeChoice == World.Size.MEDIUM) {
+            loading.setTitle("Loading the World may take a few seconds.");
+            loading.setHeaderText("");
+            loading.show();
+        }
         Engine.getGameState().createWorld(worldSizeChoice, player);
+        if(worldSizeChoice == World.Size.LARGE || worldSizeChoice == World.Size.MEDIUM) {
+            loading.setTitle("World Created.");
+            loading.setContentText("Finished loading the entire World");
+        }
+
         Engine.loadFXML("GameScreen.fxml");
         // From here we go to GameScreenController
     }
@@ -42,8 +55,9 @@ public class CharacterCreationScreenController extends AbstractScreenController 
 
     private void update() {
         bottomConsole.setText("Roll your character, and choose a world size!");
-        bottomConsole.appendText("\n\nLarge world size may take a few seconds to load.");
-        bottomConsole.appendText("\n~8 million places and ~40,000 characters");
+        bottomConsole.appendText("\n\nLarge & Medium Worlds will take a few seconds to load!");
+        bottomConsole.appendText("\n\nMedium Worlds have ~1.6 million places and ~20-25k NPCs");
+        bottomConsole.appendText("\n Large Worlds have ~26  million places and ~110-130k NPCs");
         playerSheet.setText(player.getCharacterSheet());
     }
 

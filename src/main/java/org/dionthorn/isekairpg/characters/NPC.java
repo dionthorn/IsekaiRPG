@@ -22,86 +22,106 @@ public class NPC extends AbstractCharacter {
     public NPC(Dice hitDie, Place initialLocation) {
         super(hitDie, initialLocation);
 
-        this.age = new Dice(1,20, 20).roll(); // every NPC starts aged d20+20
-        this.maxAge = age + new Dice(10, 6).roll(); // every NPC will die 10d6 years after start
+        setAge(new Dice(1,20, 20).roll()); // every NPC starts aged d20+20
+        setMaxAge(getAge() + new Dice(10, 6).roll()); // every NPC will die 10d6 years after start
 
         // set the NPC profession
         Place.Type placeType = initialLocation.getType();
-        if(placeType == Place.Type.LODGING) {
+        if(placeType == Place.Type.INN) {
             if(Dice.d2.roll() == 1) {
-                profession = Profession.INNKEEPER;
-                this.equippedWeapon = Weapons.get(Weapons.Type.KUNAI);
-                this.equippedArmor = Armors.get(Armors.Type.CLOTH);
+                setProfession(Profession.INNKEEPER);
+                setEquippedWeapon(Weapons.get(Weapons.Type.KUNAI));
+                setEquippedArmor(Armors.get(Armors.Type.CLOTH));
+                getMoney().add(0, 1, 0, 0);
             } else {
-                profession = Profession.BUILDER;
-                this.equippedWeapon = Weapons.get(Weapons.Type.OTSUCHI);
-                this.equippedArmor = Armors.get(Armors.Type.CLOTH);
+                setProfession(Profession.BUILDER);
+                setEquippedWeapon(Weapons.get(Weapons.Type.OTSUCHI));
+                setEquippedArmor(Armors.get(Armors.Type.CLOTH));
+                getMoney().add(0, 1, 0, 0);
             }
         } else if(placeType == Place.Type.TRADER) {
-            profession = Profession.TRADER;
-            this.equippedWeapon = Weapons.get(Weapons.Type.TONFA);
-            this.equippedArmor = Armors.get(Armors.Type.CLOTH);
+            setProfession(Profession.TRADER);
+            setEquippedWeapon(Weapons.get(Weapons.Type.TONFA));
+            setEquippedArmor(Armors.get(Armors.Type.CLOTH));
+            getMoney().add(1, 0, 0, 0);
         } else if(placeType == Place.Type.BLACKSMITH) {
-            profession = Profession.BLACKSMITH;
-            this.equippedWeapon = Weapons.get(Weapons.Type.CHIGIRIKI);
-            this.equippedArmor = Armors.get(Armors.Type.CLOTH);
-        } else if(placeType == Place.Type.AGRICULTURE) {
-            profession = Profession.FARMER;
-            this.equippedWeapon = Weapons.get(Weapons.Type.KAMA);
-            this.equippedArmor = Armors.get(Armors.Type.CLOTH);
+            setProfession(Profession.BLACKSMITH);
+            setEquippedWeapon(Weapons.get(Weapons.Type.CHIGIRIKI));
+            setEquippedArmor(Armors.get(Armors.Type.CLOTH));
+            getMoney().add(0, 1, 0, 0);
+        } else if(placeType == Place.Type.FARM) {
+            setProfession(Profession.FARMER);
+            setEquippedWeapon(Weapons.get(Weapons.Type.KAMA));
+            setEquippedArmor(Armors.get(Armors.Type.CLOTH));
+            getMoney().add(0, 0, 1, 0);
         } else if(placeType == Place.Type.FISHERY) {
-            profession = Profession.FISHER;
-            this.equippedWeapon = Weapons.get(Weapons.Type.JUTTE);
-            this.equippedArmor = Armors.get(Armors.Type.CLOTH);
+            setProfession(Profession.FISHER);
+            setEquippedWeapon(Weapons.get(Weapons.Type.JUTTE));
+            setEquippedArmor(Armors.get(Armors.Type.CLOTH));
+            getMoney().add(0, 0, 1, 0);
         } else if(placeType == Place.Type.RESERVE) {
-            profession = Profession.HUNTER;
-            this.equippedWeapon = Weapons.get(Weapons.Type.YUMI);
-            this.equippedArmor = Armors.get(Armors.Type.CLOTH);
+            setProfession(Profession.HUNTER);
+            setEquippedWeapon(Weapons.get(Weapons.Type.YUMI));
+            setEquippedArmor(Armors.get(Armors.Type.CLOTH));
+            getMoney().add(0, 0, 1, 0);
         } else if(placeType == Place.Type.WOODLAND) {
-            profession = Profession.LUMBERJACK;
-            this.equippedWeapon = Weapons.get(Weapons.Type.ONO);
-            this.equippedArmor = Armors.get(Armors.Type.CLOTH);
+            setProfession(Profession.LUMBERJACK);
+            setEquippedWeapon(Weapons.get(Weapons.Type.ONO));
+            setEquippedArmor(Armors.get(Armors.Type.CLOTH));
+            getMoney().add(0, 0, 1, 0);
         } else if(placeType == Place.Type.MINE) {
-            profession = Profession.MINER;
-            this.equippedWeapon = Weapons.get(Weapons.Type.KUSARI);
-            this.equippedArmor = Armors.get(Armors.Type.CLOTH);
+            setProfession(Profession.MINER);
+            setEquippedWeapon(Weapons.get(Weapons.Type.KUSARI));
+            setEquippedArmor(Armors.get(Armors.Type.CLOTH));
+            getMoney().add(0, 0, 1, 0);
         } else if(placeType == Place.Type.CAVE) {
             if(Dice.d20.roll() == 20) {
                 // 5% chance of MAGE in caves
-                profession = Profession.MAGE;
-                this.equippedWeapon = Weapons.get(Weapons.Type.BO);
-                this.equippedArmor = Armors.get(Armors.Type.CLOTH);
+                setProfession(Profession.MAGE);
+                setEquippedWeapon(Weapons.get(Weapons.Type.BO));
+                setEquippedArmor(Armors.get(Armors.Type.CLOTH));
+                getMoney().add(0, Dice.d4.roll(), Dice.d20.roll(), Dice.d20.roll());
             } else {
-                profession = Profession.BANDIT;
-                this.equippedWeapon = Weapons.get(Weapons.Type.TANTO);
-                this.equippedArmor = Armors.get(Armors.Type.CLOTH);
+                setProfession(Profession.BANDIT);
+                setEquippedWeapon(Weapons.get(Weapons.Type.TANTO));
+                setEquippedArmor(Armors.get(Armors.Type.CLOTH));
+                getMoney().add(0, 0, Dice.d4.roll(), Dice.d20.roll());
             }
         } else if(placeType == Place.Type.INDOORS) {
             Area parentArea = (Area) initialLocation.getParent();
             if(parentArea.getSetting() == Area.Setting.CASTLE) {
-                profession = Profession.SAMURAI;
-                this.equippedWeapon = Weapons.get(Weapons.Type.KATANA);
-                this.equippedArmor = Armors.get(Armors.Type.CLOTH);
+                setProfession(Profession.SAMURAI);
+                setEquippedWeapon(Weapons.get(Weapons.Type.KATANA));
+                setEquippedArmor(Armors.get(Armors.Type.CLOTH));
+                getMoney().add(0, 0, Dice.d4.roll(), Dice.d20.roll());
             } else if(parentArea.getSetting() == Area.Setting.DUNGEON) {
                 if(Dice.d20.roll() > 16) {
                     // 20% chance of MAGE in dungeons
-                    profession = Profession.MAGE;
-                    this.equippedWeapon = Weapons.get(Weapons.Type.BO);
-                    this.equippedArmor = Armors.get(Armors.Type.CLOTH);
+                    setProfession(Profession.MAGE);
+                    setEquippedWeapon(Weapons.get(Weapons.Type.BO));
+                    setEquippedArmor(Armors.get(Armors.Type.CLOTH));
+                    getMoney().add(0, Dice.d4.roll(), Dice.d20.roll(), Dice.d20.roll());
                 } else {
-                    profession = Profession.BANDIT;
-                    this.equippedWeapon = Weapons.get(Weapons.Type.TANTO);
-                    this.equippedArmor = Armors.get(Armors.Type.CLOTH);
+                    setProfession(Profession.BANDIT);
+                    setEquippedWeapon(Weapons.get(Weapons.Type.TANTO));
+                    setEquippedArmor(Armors.get(Armors.Type.CLOTH));
+                    getMoney().add(0, 0, Dice.d4.roll(), Dice.d20.roll());
                 }
             }
-        } else if(placeType == Place.Type.KINGSROOM) {
-            profession = Profession.DAIMYO;
-            this.equippedWeapon = Weapons.get(Weapons.Type.KATANA);
-            this.equippedArmor = Armors.get(Armors.Type.CLOTH);
+        } else if(placeType == Place.Type.THRONEROOM) {
+            setProfession(Profession.DAIMYO);
+            setEquippedWeapon(Weapons.get(Weapons.Type.KATANA));
+            setEquippedArmor(Armors.get(Armors.Type.CLOTH));
+            getMoney().add(Dice.d4.roll(), Dice.d20.roll(), Dice.d20.roll(), Dice.d20.roll());
+        } else if(placeType == Place.Type.GRAVEYARD) {
+            setProfession(Profession.CRYPTKEEPER);
+            setEquippedWeapon(Weapons.get(Weapons.Type.CHIGIRIKI));
+            setEquippedArmor(Armors.get(Armors.Type.CLOTH));
+            getMoney().add(0, 0, Dice.d2.roll(), Dice.d20.roll());
         }
 
         // all NPC start with rice for food
-        this.inventory.add(Foods.get(Foods.Type.RICE));
+        getInventory().add(Foods.get(Foods.Type.RICE));
     }
 
     private void moveNPC(int directionX, int directionY) {
@@ -205,86 +225,146 @@ public class NPC extends AbstractCharacter {
         }
     }
 
-    private void goHome() {
+    private void goTowardsPlace(Place target) {
         isSleeping = false;
         isWorking = false;
-        Area homeArea = (Area) home.getParent();
+        Area targetArea = (Area) target.getParent();
         Area currentArea = this.getCurrentArea();
-        int homeX = home.getX();
-        int homeY = home.getY();
-        int npcX = -1;
-        int npcY = -1;
-        if(homeArea.equals(currentArea)) {
-            // npc is in the same Area as its home
+        int targetX = target.getX();
+        int targetY = target.getY();
+        int npcX;
+        int npcY;
+        if(targetArea.equals(currentArea)) {
+            // npc is in the same Area as its target
             npcX = getCurrentPlace().getX();
             npcY = getCurrentPlace().getY();
-            if(npcY < homeY) {
-                // npc is north of home
+            if(npcY < targetY) {
+                // npc is north of target
                 moveNPC(0, 1);
-            } else if(npcY > homeY) {
-                // npc is south of home
+            } else if(npcY > targetY) {
+                // npc is south of target
                 moveNPC(0, -1);
-            } else if(npcX < homeX) {
-                // npc is west of home
+            } else if(npcX < targetX) {
+                // npc is west of target
                 moveNPC(1, 0);
-            } else if(npcX > homeX) {
-                // npc is east of home
+            } else if(npcX > targetX) {
+                // npc is east of target
                 moveNPC(-1, 0);
             }
         } else {
-            // npc is not in the same Area as its home check if they are in the correct Region
-            Region homeRegion = (Region) homeArea.getParent();
+            // npc is not in the same Area as its target check if they are in the correct Region
+            Region targetRegion = (Region) targetArea.getParent();
             Region currentRegion = this.getCurrentRegion();
-            if(homeRegion.equals(currentRegion)) {
-                // npc is in the same region so move toward home area
-                int homeAreaX = homeArea.getX();
-                int homeAreaY = homeArea.getY();
+            if(targetRegion.equals(currentRegion)) {
+                // npc is in the same region so move toward target area
+                int targetAreaX = targetArea.getX();
+                int targetAreaY = targetArea.getY();
                 npcX = currentArea.getX();
                 npcY = currentArea.getY();
-                if(npcY < homeAreaY) {
-                    // npc is north of home
+                if(npcY < targetAreaY) {
+                    // npc is north of target
                     moveNPC(0, 1);
-                } else if(npcY > homeAreaY) {
-                    // npc is south of home
+                } else if(npcY > targetAreaY) {
+                    // npc is south of target
                     moveNPC(0, -1);
-                } else if(npcX < homeAreaX) {
-                    // npc is west of home
+                } else if(npcX < targetAreaX) {
+                    // npc is west of target
                     moveNPC(1, 0);
-                } else if(npcX > homeAreaX) {
-                    // npc is east of home
+                } else if(npcX > targetAreaX) {
+                    // npc is east of target
                     moveNPC(-1, 0);
                 }
             } else {
-                // npc is not in the same region so move towards home region
-                int homeRegionX = homeRegion.getX();
-                int homeRegionY = homeRegion.getY();
+                // npc is not in the same region so move towards target region
+                int targetRegionX = targetRegion.getX();
+                int targetRegionY = targetRegion.getY();
                 npcX = currentRegion.getX();
                 npcY = currentRegion.getY();
-                if(npcY < homeRegionY) {
-                    // npc is north of home
+                if(npcY < targetRegionY) {
+                    // npc is north of target
                     moveNPC(0, 1);
-                } else if(npcY > homeRegionY) {
-                    // npc is south of home
+                } else if(npcY > targetRegionY) {
+                    // npc is south of target
                     moveNPC(0, -1);
-                } else if(npcX < homeRegionX) {
-                    // npc is west of home
+                } else if(npcX < targetRegionX) {
+                    // npc is west of target
                     moveNPC(1, 0);
-                } else if(npcX > homeRegionX) {
-                    // npc is east of home
+                } else if(npcX > targetRegionX) {
+                    // npc is east of target
                     moveNPC(-1, 0);
                 }
             }
         }
     }
 
-    private void sleep() { isSleeping = true; }
+    private void sleep() {
+        isWorking = false;
+        isSleeping = true;
+    }
 
-    private void work() { isWorking = true; }
+    private void work() {
+        isWorking = true;
+        isSleeping = false;
+        // Different professions gain different things from work
+        if(getProfession() == Profession.FARMER) {
+            int amount = new Dice(2, 2, -2).roll(); // 2d2-2 (0-2) Rice per work hour
+            for(int count=0; count<amount; count++) {
+                getInventory().add(Foods.get(Foods.Type.RICE));
+            }
+        }
+    }
+
+    public boolean isSleeping() { return isSleeping; }
+
+    public boolean isWorking() { return isWorking; }
 
     private void socialize() {
-        isSleeping = false;
         isWorking = false;
-        // random movement then socialize
+        isSleeping = false;
+        // will talk with all nearby characters
+        for(AbstractCharacter nearby: getCurrentPlace().getNearbyCharacters()) {
+            if(nearby instanceof Player player) {
+                // NPC talks to player add action string to show result.
+                StringBuilder sb = new StringBuilder();
+
+                // calculate player change
+                int playerRelationChange = player.talkTo(this);
+                String playerChange = (playerRelationChange < 0) ?
+                        String.valueOf(playerRelationChange) : sb.append("+").append(playerRelationChange).toString();
+                sb.setLength(0); // clear string builder faster than generating new empty
+                int playerRelationToNPC = player.getRelation(this);
+
+                // calculate npc change
+                int npcRelationChange = this.talkTo(player);
+                String npcChange = (npcRelationChange < 0) ?
+                        String.valueOf(npcRelationChange) : sb.append("+").append(npcRelationChange).toString();
+                sb.setLength(0);
+                int npcRelationToPlayer = this.getRelation(player);
+
+                // generate action strings for post turn output
+                sb.append(getFirstName()).append(" ").append(getLastName()).append(" talked with you.");
+                GameState.actionStrings.add(sb.toString());
+                sb.setLength(0);
+
+                sb.append("  Your feelings: ").append(playerChange).append(" total: ").append(playerRelationToNPC);
+                GameState.actionStrings.add(sb.toString());
+                sb.setLength(0);
+
+                sb.append("  ").append(getFirstName()).append(" feelings: ")
+                        .append(npcChange).append(" total: ").append(npcRelationToPlayer);
+                GameState.actionStrings.add(sb.toString());
+            } else if(nearby instanceof NPC npc) {
+                if(!npc.isSleeping() && !npc.isWorking()) {
+                    this.talkTo(npc);
+                    npc.talkTo(this);
+                }
+            }
+        }
+    }
+
+    private void randomMove() {
+        isWorking = false;
+        isSleeping = false;
         int direction = Dice.d4.roll();
         if(direction == 1) {
             moveNPC(0, 1); // south
@@ -295,38 +375,43 @@ public class NPC extends AbstractCharacter {
         } else if(direction == 4) {
             moveNPC(-1, 0); // west
         }
-        // talk to anyone at place after moving
     }
 
     @Override
     public void tick() {
         // check if character isAlive then perform AI task
         if(isAlive()) {
-            super.tick();
-            int hour = Engine.getGameState().getCurrentHour();
-            // (10hrs) 20-5  goHome when at home sleep
-            // (8hrs)   6-13 goHome when at home perform profession
-            // (6hrs)  14-19 randomly move around and socialize each hour
-            if(hour <= 5 || hour >= 20) {
-                if(currentPlace != home) {
-                    goHome();
+            super.tick(); // aging logic
+            GameState gameState = Engine.getGameState();
+            int hour = gameState.getCurrentHour();
+            // basic AI schedule:
+            // 11pm-6am  (8hrs) - go home and sleep
+            // 7am -2pm  (8hrs) - work or collect needs
+            // 3pm -10pm (8hrs) - socialize or collect needs
+            if(hour >= 23 || hour <= 6) {
+                // 23-6
+                if(getCurrentPlace() != getHome()) {
+                    goTowardsPlace(getHome());
                 } else {
-                    sleep();
+                    if(!isSleeping()) {
+                        sleep();
+                    }
                 }
-            } else if(hour <= 13) {
-                if(currentPlace != home) {
-                    goHome();
+            } else if(hour <= 14) {
+                // 7-14
+                if(getCurrentPlace() != getHome()) {
+                    goTowardsPlace(getHome());
                 } else {
-                    work();
+                    if(!isWorking()) {
+                        work();
+                    }
                 }
             } else {
+                // 15-22
+                randomMove();
                 socialize();
             }
         }
     }
-
-    public boolean isSleeping() { return isSleeping; }
-
-    public boolean isWorking() { return isWorking; }
 
 }

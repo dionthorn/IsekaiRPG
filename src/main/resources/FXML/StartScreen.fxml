@@ -25,16 +25,12 @@
         </GridPane>
     </center>
     <left>
-        <VBox fx:id="leftBar" style="-fx-background-color: #336699; -fx-font: 12 Consolas;" minWidth="32" spacing="5" alignment="CENTER">
-            <padding><Insets top="10" right="10" bottom="10" left="10"/></padding>
-        </VBox>
+
     </left>
     <right>
-        <VBox fx:id="rightBar" style="-fx-background-color: #336699; -fx-font: 12 Consolas;" minWidth="32" spacing="5">
-            <padding><Insets top="10" right="10" bottom="10" left="10"/></padding>
-        </VBox>
+
     </right>
     <bottom>
-        <TextArea fx:id="bottomConsole" prefWidth="1024" prefHeight="192" style="-fx-font: 12 Consolas;"/>
+
     </bottom>
 </BorderPane>

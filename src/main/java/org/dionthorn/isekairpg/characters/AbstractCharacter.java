@@ -1,9 +1,7 @@
 package org.dionthorn.isekairpg.characters;
 
 import org.dionthorn.isekairpg.characters.Attributes.Attribute;
-import org.dionthorn.isekairpg.items.AbstractItem;
-import org.dionthorn.isekairpg.items.Armor;
-import org.dionthorn.isekairpg.items.Weapon;
+import org.dionthorn.isekairpg.items.*;
 import org.dionthorn.isekairpg.utilities.Dice;
 import org.dionthorn.isekairpg.Engine;
 import org.dionthorn.isekairpg.GameState;
@@ -11,8 +9,8 @@ import org.dionthorn.isekairpg.utilities.Names;
 import org.dionthorn.isekairpg.worlds.Area;
 import org.dionthorn.isekairpg.worlds.Place;
 import org.dionthorn.isekairpg.worlds.Region;
-
 import java.util.ArrayList;
+import java.util.HashMap;
 
 /**
  * AbstractCharacter class which Player and NPC inherit from
@@ -22,26 +20,30 @@ public abstract class AbstractCharacter {
     private static final int XP_SCALE = 1000; // (level + 1) * XP_SCALE = needed XP to level up
     private static int characterCount = 0; // how many characters have been created
 
-    protected final String firstName;
-    protected final String lastName;
-    protected boolean alive;
-    protected int maxAge;
-    protected int age;
-    protected int birthMonth;
-    protected int birthDay;
-    protected Dice hitDie;
-    protected int maxHitPoints;
-    protected int hitPoints;
-    protected int soulPoints = 1;
-    protected int level = 1;
-    protected int xp = 0;
-    protected Attributes attributes; // character attributes
-    protected Place home; // home is the initial location of the character
-    protected Place currentPlace; // where the character is currently at
-    protected Profession profession;
-    protected ArrayList<AbstractItem> inventory = new ArrayList<>();
-    protected Weapon equippedWeapon = null;
-    protected Armor equippedArmor = null;
+    private final HashMap<AbstractCharacter, Integer> relationships = new HashMap<>();
+    private final ArrayList<AbstractItem> inventory = new ArrayList<>();
+    private final Money money = new Money(0, 0, 0, 0);
+    private final Attributes attributes;
+    private final String firstName;
+    private final String lastName;
+    private final int birthMonth;
+    private final int birthDay;
+
+    private boolean alive;
+    private int maxAge;
+    private int age;
+    private int maxHitPoints;
+    private int hitPoints;
+    private int soulPoints = 1;
+    private int level = 1;
+    private int xp = 0;
+
+    private Dice hitDie;
+    private Place home;
+    private Place currentPlace;
+    private Profession profession;
+    private Weapon equippedWeapon = null;
+    private Armor equippedArmor = null;
 
     /**
      * used to determine what NPCs do the place types that determine Profession for NPCs are:
@@ -55,21 +57,22 @@ public abstract class AbstractCharacter {
      * MINE -> MINER
      * CAVE -> BANDIT/MAGE
      * INDOORS -> SAMURAI if CASTLE, MAGE/BANDIT if DUNGEON (KING are specially placed during world generation)
-     * OUTDOORS -> No NPCs spawn outdoors, only random encounters with BANDIT if WILD
+     * OUTDOORS -> No NPCs spawn outdoors
+     * GRAVEYARD -> CRYPTKEEPER
      */
     public enum Profession {
         INNKEEPER, BUILDER, TRADER, BLACKSMITH, FARMER, FISHER, HUNTER, LUMBERJACK, MINER,
-        BANDIT, MAGE, SAMURAI, DAIMYO
+        BANDIT, MAGE, SAMURAI, DAIMYO, CRYPTKEEPER
     }
 
     private AbstractCharacter() {
         characterCount++;
-        this.alive = true;
-        this.birthDay = new Dice(GameState.DAYS_PER_MONTH).roll(); // random birthday between 1-30
-        this.birthMonth = new Dice(GameState.MONTHS_PER_YEAR).roll(); // random birth month between 1-12
-        this.firstName = Names.getName();
-        this.lastName = Names.getName();
-        this.attributes = new Attributes();
+        alive = true;
+        birthDay = new Dice(GameState.DAYS_PER_MONTH).roll(); // random birthday between 1-30
+        birthMonth = new Dice(GameState.MONTHS_PER_YEAR).roll(); // random birth month between 1-12
+        firstName = Names.getName();
+        lastName = Names.getName();
+        attributes = new Attributes();
     }
 
     /**
@@ -104,9 +107,9 @@ public abstract class AbstractCharacter {
         this();
         // place the character and set home
         this.home = currentPlace;
-        this.currentPlace = currentPlace;
+        setCurrentPlace(currentPlace);
         this.hitDie = hitDie;
-        setStartingHP();
+        startingHP();
         // processing higher levels should be done in implementing objects
     }
 
@@ -118,9 +121,193 @@ public abstract class AbstractCharacter {
     public AbstractCharacter(Dice hitDie) {
         this();
         this.hitDie = hitDie;
-        setStartingHP();
+        startingHP();
         // processing higher levels should be done in implementing objects
     }
+
+    private void startingHP() {
+        // level 1 hit points = hitDie + constitution modifier
+        int startingHP = (hitDie.getFaces() * hitDie.getAmount()) + attributes.getModifier(Attribute.CONSTITUTION);
+        if(startingHP < 1) {
+            startingHP = 1;
+        }
+        this.maxHitPoints = startingHP;
+        this.hitPoints = maxHitPoints;
+    }
+
+    // methods
+
+    public boolean increaseXP(int amount) {
+        xp += amount;
+        if(xp >= getNeededXP()) {
+            level++;
+            return true;
+        }
+        return false;
+    }
+
+    public int talkTo(AbstractCharacter otherCharacter) {
+        int relationRoll = Dice.d10.roll(); // d10
+        int headsOrTails = Dice.d2.roll();
+        if(headsOrTails == 1) {
+            relationRoll = -relationRoll; // invert 50% chance
+        }
+        // add otherCharacter charisma modifier
+        relationRoll += otherCharacter.getAttributes().getModifier(Attribute.CHARISMA);
+        // if not known add, otherwise add to current value.
+        if(relationships.get(otherCharacter) == null) {
+            relationships.put(otherCharacter, relationRoll);
+        } else {
+            relationships.put(otherCharacter, relationships.get(otherCharacter) + relationRoll);
+        }
+        return relationRoll;
+    }
+
+    /**
+     * All child classes use super.tick() to advance age of the character and die at maxAge
+     */
+    public void tick() {
+        // child classes should override and call super
+        GameState gameState = Engine.getGameState();
+        if(gameState.getCurrentMonth() == birthMonth) {
+            if(gameState.getCurrentDay() == birthDay) {
+                if(gameState.getCurrentHour() == 1) {
+                    // this is the first hour of the character birthday age up.
+                    age++;
+                    // check if maxAge
+                    if(age == maxAge) {
+                        // character dies of old age
+                        alive = false;
+                        System.out.println(firstName + " " + lastName + " has died of old age!");
+                    }
+                }
+            }
+        }
+    }
+
+    public static void resetCharacterCount() { characterCount = 0; }
+
+    // logical setters
+
+    public void setHP(int newHP) {
+        hitPoints = newHP;
+        if(hitPoints <= 0) {
+            alive = false; // kill the character if hp <= 0
+            hitPoints = 0;
+        } else if(hitPoints > maxHitPoints) {
+            hitPoints = maxHitPoints; // HP cannot exceed maxHP
+        }
+    }
+
+    public void setSP(int newSP) {
+        soulPoints = newSP;
+        if(soulPoints <= 0) {
+            alive = false; // kill the character if sp <= 0
+            soulPoints = 0;
+        }
+    }
+
+    // logical getters
+
+    public Area getCurrentArea() { return ((Area) currentPlace.getParent()); }
+
+    public Region getCurrentRegion() { return ((Region) currentPlace.getParent().getParent()); }
+
+    public int getMaxCarryWeight() { return 100 + (20 * attributes.getModifier(Attribute.STRENGTH)); }
+
+    public int getArmorClass() {
+        // 10 + armor bonus + shield bonus + Dexterity modifier + size modifier
+        int armorBonus = 0;
+        if(equippedArmor != null) {
+            armorBonus = equippedArmor.getArmorBonus();
+        }
+        return 10 + armorBonus + attributes.getModifier(Attribute.DEXTERITY);
+    }
+
+    public int getNeededXP() { return (level + 1) * XP_SCALE; }
+
+    public Integer getRelation(AbstractCharacter otherCharacter) {
+        if(relationships.get(otherCharacter) != null) {
+            return relationships.get(otherCharacter);
+        }
+        return null;
+    }
+
+    public int getCarriedWeight() {
+        int weight = 0;
+        for(AbstractItem item: inventory) {
+            weight += item.getWeight();
+        }
+        if(equippedWeapon != null) {
+            weight += equippedWeapon.getWeight();
+        }
+        if(equippedArmor != null) {
+            weight += equippedArmor.getWeight();
+        }
+        return weight;
+    }
+
+    public String getCharacterSheet() {
+        StringBuilder result = new StringBuilder();
+        result.append("F. Name: ").append(getFirstName()).append("\n");
+        result.append("L. Name: ").append(getLastName()).append("\n");
+        result.append("     XP: ").append(getXP()).append("\n");
+        result.append(" LVL UP: ").append(getNeededXP()).append("\n");
+        result.append("    Age: ").append(getAge()).append("\n");
+        result.append("  Birth: ").append(getBirthMonth()).append("/").append(getBirthDay()).append("\n");
+        result.append("  Level: ").append(getLevel()).append("\n");
+        result.append("     HD: ").append(getHitDie()).append("\n");
+        result.append("     HP: ").append(getHP()).append("/").append(getMaxHP()).append("\n");
+        result.append("     SP: ").append(getSP()).append("\n");
+        result.append("\n").append(attributes).append("\n");
+        if(equippedWeapon != null) {
+            result.append(" Weapon: ").append(equippedWeapon.getName()).append("\n");
+        }
+        if(equippedArmor != null) {
+            result.append("  Armor: ").append(equippedArmor.getName()).append("\n");
+        }
+        result.append(" Weight: ").append(getCarriedWeight()).append("/").append(getMaxCarryWeight()).append("\n");
+        result.append("\n   Money:").append("\n");
+        result.append("Platinum: ").append(getMoney().getPlatinum()).append("\n");
+        result.append("    Gold: ").append(getMoney().getGold()).append("\n");
+        result.append("  Silver: ").append(getMoney().getSilver()).append("\n");
+        result.append("  Copper: ").append(getMoney().getCopper()).append("\n");
+        return result.toString();
+    }
+
+    // logical setters
+
+    public void setCurrentPlace(Place toMove) {
+        if(currentPlace != null) {
+            currentPlace.getNearbyCharacters().remove(this); // remove from previous Place list
+        }
+        currentPlace = toMove;
+        if(currentPlace != null) {
+            currentPlace.getNearbyCharacters().add(this); // add to new Place list
+        }
+    }
+
+    // setters
+
+    public void setHome(Place newHome) { home = newHome; }
+
+    public void setAge(int newAge) { age = newAge; }
+
+    public void setMaxAge(int newMaxAge) { maxAge = newMaxAge; }
+
+    public void setProfession(Profession newProfession) { profession = newProfession; }
+
+    public void setEquippedWeapon(Weapon newWeapon) { equippedWeapon = newWeapon; }
+
+    public void setEquippedArmor(Armor newArmor) { equippedArmor = newArmor; }
+
+    // boolean is
+
+    public boolean isAlive() { return alive; }
+
+    // static getter
+
+    public static int getCharacterCount() { return characterCount; }
 
     // pure getters
 
@@ -146,113 +333,22 @@ public abstract class AbstractCharacter {
 
     public int getSP() { return soulPoints; }
 
-    public boolean isAlive() { return alive; }
-
     public Place getCurrentPlace() { return currentPlace; }
 
     public Place getHome() { return home; }
 
     public Profession getProfession() { return profession; }
 
-    public Area getCurrentArea() { return ((Area) currentPlace.getParent()); }
+    public Money getMoney() { return money; }
 
-    public Region getCurrentRegion() { return ((Region) currentPlace.getParent().getParent()); }
+    public HashMap<AbstractCharacter, Integer> getRelationships() { return relationships; }
 
-    // logical getters
+    public Attributes getAttributes() { return attributes; }
 
-    public int getCarriedWeight() {
-        int weight = 0;
-        for(AbstractItem item: inventory) {
-            weight += item.getWeight();
-        }
-        if(equippedWeapon != null) {
-            weight += equippedWeapon.getWeight();
-        }
-        if(equippedArmor != null) {
-            weight += equippedArmor.getWeight();
-        }
-        return weight;
-    }
+    public ArrayList<AbstractItem> getInventory() { return inventory; }
 
-    public int getMaxCarryWeight() { return 100 + (10 * attributes.getModifier(Attribute.STRENGTH)); }
+    public Armor getEquippedArmor() { return equippedArmor; }
 
-    public int getNeededXP() { return (level + 1) * XP_SCALE; }
-
-    public String getCharacterSheet() {
-        StringBuilder result = new StringBuilder();
-        result.append("F. Name: ").append(getFirstName()).append("\n");
-        result.append("L. Name: ").append(getLastName()).append("\n");
-        result.append("     XP: ").append(getXP()).append("\n");
-        result.append(" LVL UP: ").append(getNeededXP()).append("\n");
-        result.append("    Age: ").append(getAge()).append("\n");
-        result.append("  Birth: ").append(getBirthMonth()).append("/").append(getBirthDay()).append("\n");
-        result.append("  Level: ").append(getLevel()).append("\n");
-        result.append("     HD: ").append(getHitDie()).append("\n");
-        result.append("     HP: ").append(getHP()).append("/").append(getMaxHP()).append("\n");
-        result.append("     SP: ").append(getSP()).append("\n");
-        result.append("\n").append(attributes).append("\n");
-        if(equippedWeapon != null) {
-            result.append(" Weapon: ").append(equippedWeapon.getName()).append("\n");
-        }
-        if(equippedArmor != null) {
-            result.append("  Armor: ").append(equippedArmor.getName()).append("\n");
-        }
-        result.append(" Weight: ").append(getCarriedWeight()).append("/").append(getMaxCarryWeight()).append("\n");
-        return result.toString();
-    }
-
-    // setters
-
-    public void setCurrentPlace(Place toMove) { currentPlace = toMove; }
-
-    public void setHome(Place newHome) { home = newHome; }
-
-    // logical setters
-
-    public void setHP(int newHP) {
-        hitPoints = newHP;
-        if(hitPoints <= 0) {
-            alive = false; // kill the character if hp <= 0
-        } else if(hitPoints > maxHitPoints) {
-            hitPoints = maxHitPoints; // HP cannot exceed maxHP
-        }
-    }
-
-    // static getter
-
-    public static int getCharacterCount() { return characterCount; }
-
-    // methods
-
-    private void setStartingHP() {
-        // level 1 hit points = hitDie + constitution modifier
-        int startingHP = (hitDie.getFaces() * hitDie.getAmount()) + attributes.getModifier(Attribute.CONSTITUTION);
-        if(startingHP < 1) {
-            startingHP = 1;
-        }
-        this.maxHitPoints = startingHP;
-        this.hitPoints = maxHitPoints;
-    }
-
-    /**
-     * All child classes use super.tick() to advance age of the character and die at maxAge
-     */
-    public void tick() {
-        // child classes should override and call super
-        GameState gameState = Engine.getGameState();
-        if(gameState.getCurrentMonth() == birthMonth) {
-            if(gameState.getCurrentDay() == birthDay) {
-                if(gameState.getCurrentHour() == 1) {
-                    // this is the first hour of the character birthday age up.
-                    age++;
-                    // check if maxAge
-                    if(age == maxAge) {
-                        // character dies of old age
-                        alive = false;
-                    }
-                }
-            }
-        }
-    }
+    public Weapon getEquippedWeapon() { return equippedWeapon; }
 
 }

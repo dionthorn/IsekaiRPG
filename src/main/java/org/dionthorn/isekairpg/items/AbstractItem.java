@@ -2,9 +2,9 @@ package org.dionthorn.isekairpg.items;
 
 public abstract class AbstractItem {
 
-    protected final String name;
-    protected final String description;
-    protected final int weight;
+    private final String name;
+    private final String description;
+    private final int weight;
 
     public AbstractItem(String name, String description, int weight) {
         this.name = name;

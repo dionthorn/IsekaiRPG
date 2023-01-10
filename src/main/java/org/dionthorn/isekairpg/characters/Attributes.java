@@ -14,7 +14,6 @@ public class Attributes {
     protected int[] attributes; // Attribute.ordinal() to index
 
     public Attributes() {
-        // Level 1 attribute roll 3d6 per attribute
         this.attributes = new int[] {
                 ATTRIBUTE_DICE.roll(),
                 ATTRIBUTE_DICE.roll(),
@@ -28,6 +27,8 @@ public class Attributes {
     public int get(Attribute attribute) { return attributes[attribute.ordinal()]; }
 
     public int getModifier(Attribute attribute) { return (get(attribute) - 10) / 2; }
+
+    public void increase(Attribute attribute) { attributes[attribute.ordinal()]++; }
 
     @Override
     public String toString() {

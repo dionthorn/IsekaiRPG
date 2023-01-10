@@ -5,37 +5,34 @@
 <?import javafx.geometry.Insets?>
 
 <?import javafx.scene.text.Text?>
-<BorderPane fx:controller="org.dionthorn.isekairpg.controllers.CharacterCreationScreenController" xmlns:fx="http://javafx.com/fxml">
+<BorderPane fx:controller="org.dionthorn.isekairpg.controllers.BattleScreenController" xmlns:fx="http://javafx.com/fxml">
     <top>
         <HBox fx:id="topBar" style="-fx-background-color: #336699; -fx-font: 20 Consolas;" minHeight="32">
             <padding><Insets top="10" right="10" bottom="10" left="10"/></padding>
         </HBox>
     </top>
     <center>
-        <GridPane fx:id="centerGridPane" style="-fx-font: 12 Consolas;" minWidth="32">
-            <padding><Insets top="10" right="10" bottom="10" left="10"/></padding>
-        </GridPane>
+        <ScrollPane >
+            <TextArea fx:id="centerBattleLog" prefWidth="1024" prefHeight="1024" style="-fx-font: 11 Consolas;"/>
+        </ScrollPane>
     </center>
     <left>
-        <VBox fx:id="leftBar" style="-fx-background-color: #336699; -fx-font: 12 Consolas;" minWidth="160" spacing="5" alignment="CENTER_LEFT">
+        <VBox fx:id="leftBar" style="-fx-background-color: #336699; -fx-font: 12 Consolas;" minWidth="160" spacing="5">
             <padding><Insets top="10" right="10" bottom="10" left="10"/></padding>
             <Text fx:id="playerSheet"/>
             <Region VBox.vgrow="ALWAYS"/>
-            <Button text="Reroll" onAction="#onRerollBtn"/>
+            <Button text="Spell" onAction="#onSpell"/>
+            <Button text="Defend" onAction="#onDefend"/>
+            <Button text="Attack" onAction="#onAttack"/>
         </VBox>
     </left>
     <right>
         <VBox fx:id="rightBar" style="-fx-background-color: #336699; -fx-font: 12 Consolas;" minWidth="32" spacing="5">
             <padding><Insets top="10" right="10" bottom="10" left="10"/></padding>
-            <Text text="World Size"/>
-            <ComboBox fx:id="worldSizeBox"/>
-            <Region VBox.vgrow="ALWAYS"/>
-            <Button text="Start" onAction="#onStartBtn"/>
+            <Text fx:id="npcSheet"/>
         </VBox>
     </right>
     <bottom>
-        <ScrollPane>
-            <TextArea fx:id="bottomConsole" prefWidth="1024" style="-fx-font: 12 Consolas;"/>
-        </ScrollPane>
+
     </bottom>
 </BorderPane>
